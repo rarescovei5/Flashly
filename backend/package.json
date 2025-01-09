@@ -1,9 +1,11 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "type": "module",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "server": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
