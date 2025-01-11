@@ -11,6 +11,8 @@ const Signup = () => {
     const name = e.target.name;
     const value = e.target.value;
 
+    setErrorMessage('');
+
     if (name === 'email') {
       setEmail(value);
     }
@@ -24,17 +26,33 @@ const Signup = () => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     setErrorMessage('');
     e.preventDefault();
+
     if (password1 !== password2) {
       setErrorMessage('Passwords do not match');
       return;
+    } else if (password1.length < 8) {
+      setErrorMessage('Password must be at least 8 characters');
+      return;
+    } else if (password1.length > 24) {
+      setErrorMessage('Password must be less than 24 characters');
+      return;
+    } else if (!/(?=.*[a-z])/.test(password1)) {
+      console.log('Password:', password1);
+      console.log('Regex test:', /(?=.*[a-z])/.test(password1));
+      setErrorMessage('Password must contain at least one lowercase letter');
+      return;
+    } else if (!/(?=.*[A-Z])/.test(password1)) {
+      setErrorMessage('Password must contain at least one uppercase letter');
+      return;
+    } else if (!/(?=.*\d)/.test(password1)) {
+      setErrorMessage('Password must contain at least one number');
+      return;
     }
-    console.log(email, password1, password2);
-    console.log(errorMessage);
   };
 
   return (
     <>
-      <ErrorPopup error={errorMessage} />
+      <ErrorPopup error={errorMessage} xr={2} yb={4} />
       <div className="flex flex-col items-center mx-auto w-2/3 h-screen">
         <h1 className="h3 mt-4"> Flashly</h1>
         <div className="flex flex-col items-center bg-c-light px-4 py-6 rounded-2xl my-auto w-full max-w-[400px] min-w-80">
@@ -44,7 +62,7 @@ const Signup = () => {
             onSubmit={handleSubmit}
           >
             <input
-              className="p-small py-3 px-4 rounded-2xl bg-c-dark placeholder:p-small placeholder:text-[#fff] outline-none"
+              className="p-small py-3 px-4 rounded-2xl bg-stone-200 placeholder:p-small placeholder:text-c-dark text-c-dark outline-none"
               type="email"
               required={true}
               value={email}
@@ -53,7 +71,7 @@ const Signup = () => {
               name="email"
             />
             <input
-              className="p-small py-3 px-4 rounded-2xl bg-c-dark placeholder:p-small placeholder:text-[#fff] outline-none"
+              className="p-small py-3 px-4 rounded-2xl bg-stone-200 placeholder:p-small placeholder:text-c-dark text-c-dark outline-none"
               type="password"
               required={true}
               value={password1}
@@ -62,7 +80,7 @@ const Signup = () => {
               name="password1"
             />
             <input
-              className="p-small py-3 px-4 rounded-2xl bg-c-dark placeholder:p-small placeholder:text-[#fff] outline-none"
+              className="p-small py-3 px-4 rounded-2xl bg-stone-200 placeholder:p-small placeholder:text-c-dark text-c-dark outline-none"
               type="password"
               required={true}
               value={password2}
@@ -86,19 +104,11 @@ const Signup = () => {
             <hr className="h-[1px] bg-[#fff] flex-1" />
           </div>
           <button className="relative flex flex-row w-full items-center rounded-2xl bg-[#043988] py-3 px-4 mb-4">
-            <img
-              className="absolute left-4"
-              src="./public/face-ico.svg"
-              alt=""
-            />
+            <img className="absolute left-4" src="./face-ico.svg" alt="" />
             <p className="text-center w-full">Continue with Facebook</p>
           </button>
           <button className="relative flex flex-row w-full items-center rounded-2xl bg-c-dark py-3 px-4">
-            <img
-              className="absolute left-4"
-              src="./public/goge-ico.svg"
-              alt=""
-            />
+            <img className="absolute left-4" src="./goge-ico.svg" alt="" />
             <p className="text-center w-full">Continue with Google</p>
           </button>
         </div>
