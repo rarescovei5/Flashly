@@ -1,37 +1,31 @@
-@import url('https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@300;400;500;600;700;800;900&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   .h1 {
-    font: 'Inknut Antiqua';
     @apply text-5xl font-bold;
   }
   .h2 {
-    font: 'Inknut Antiqua';
     @apply text-4xl font-bold;
   }
   .h3 {
-    font: 'Inknut Antiqua';
     @apply text-3xl font-semibold;
   }
   .h4 {
-    font: 'Inknut Antiqua';
     @apply text-2xl font-light;
   }
   .p-body {
-    font: 'Inknut Antiqua';
     @apply text-base font-normal;
   }
   .p-small {
-    font: 'Inknut Antiqua';
     @apply text-sm font-light;
   }
   .p-button {
-    font: 'Inknut Antiqua';
     @apply text-2xl font-normal;
+  }
+  .primary-btn {
+    @apply text-c-dark bg-c-primary px-4 py-2 rounded-2xl;
   }
 }
 @layer components {
