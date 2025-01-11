@@ -3,6 +3,7 @@ import ErrorPopup from '../components/ErrorPopup';
 
 const Signup = () => {
   let [email, setEmail] = useState<string>('');
+  let [username, setUsername] = useState<string>('');
   let [password1, setPassword1] = useState<string>('');
   let [password2, setPassword2] = useState<string>('');
   let [errorMessage, setErrorMessage] = useState<string>('');
@@ -22,6 +23,9 @@ const Signup = () => {
     if (name === 'password2') {
       setPassword2(value);
     }
+    if (name === 'username') {
+      setUsername(value);
+    }
   };
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     setErrorMessage('');
@@ -29,23 +33,6 @@ const Signup = () => {
 
     if (password1 !== password2) {
       setErrorMessage('Passwords do not match');
-      return;
-    } else if (password1.length < 8) {
-      setErrorMessage('Password must be at least 8 characters');
-      return;
-    } else if (password1.length > 24) {
-      setErrorMessage('Password must be less than 24 characters');
-      return;
-    } else if (!/(?=.*[a-z])/.test(password1)) {
-      console.log('Password:', password1);
-      console.log('Regex test:', /(?=.*[a-z])/.test(password1));
-      setErrorMessage('Password must contain at least one lowercase letter');
-      return;
-    } else if (!/(?=.*[A-Z])/.test(password1)) {
-      setErrorMessage('Password must contain at least one uppercase letter');
-      return;
-    } else if (!/(?=.*\d)/.test(password1)) {
-      setErrorMessage('Password must contain at least one number');
       return;
     }
   };
@@ -62,7 +49,7 @@ const Signup = () => {
             onSubmit={handleSubmit}
           >
             <input
-              className="p-small py-3 px-4 rounded-2xl bg-stone-200 placeholder:p-small placeholder:text-c-dark text-c-dark outline-none"
+              className="p-small py-3 px-4 rounded-2xl bg-c-dark placeholder:p-small placeholder:text-white text-white outline-none"
               type="email"
               required={true}
               value={email}
@@ -71,7 +58,16 @@ const Signup = () => {
               name="email"
             />
             <input
-              className="p-small py-3 px-4 rounded-2xl bg-stone-200 placeholder:p-small placeholder:text-c-dark text-c-dark outline-none"
+              className="p-small py-3 px-4 rounded-2xl bg-c-dark placeholder:p-small placeholder:text-white text-white outline-none"
+              type="text"
+              required={true}
+              value={username}
+              placeholder="Username"
+              onChange={handleChange}
+              name="username"
+            />
+            <input
+              className="p-small py-3 px-4 rounded-2xl bg-c-dark placeholder:p-small placeholder:text-white text-white outline-none"
               type="password"
               required={true}
               value={password1}
@@ -80,7 +76,7 @@ const Signup = () => {
               name="password1"
             />
             <input
-              className="p-small py-3 px-4 rounded-2xl bg-stone-200 placeholder:p-small placeholder:text-c-dark text-c-dark outline-none"
+              className="p-small py-3 px-4 rounded-2xl bg-c-dark placeholder:p-small placeholder:text-white text-white outline-none"
               type="password"
               required={true}
               value={password2}
