@@ -1,11 +1,11 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './Home';
-import Signin from './Signin';
-import Signup from './Signup';
-import Decks from './Decks';
-import Deck from './Deck';
-import PlayDeck from './PlayDeck';
-import Discover from './Discover';
+import Signin from './auth/Signin';
+import Signup from './auth/Signup';
+import Decks from './deck/Decks';
+import Deck from './deck/Deck';
+import PlayDeck from './deck/PlayDeck';
+import Discover from './deck/Discover';
 
 const App = () => {
   return (
