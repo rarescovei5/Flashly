@@ -6,7 +6,6 @@ import mysql from 'mysql2';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
-import { error } from 'console';
 const mysqlConnection = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -76,7 +75,6 @@ const loginUser = (req, res) => {
         req.body.email,
         crypto.createHash('sha256').update(req.body.password).digest('hex'),
     ];
-    console.log(values);
     mysqlConnection.query(q, values, (err, data) => {
         //------------------Error Handling - Typescript screams at you if you don't do this
         if (err)
@@ -85,7 +83,6 @@ const loginUser = (req, res) => {
             return res.status(500).send({ error: 'Error while logging in' });
         }
         if (data.length > 0) {
-            console.log(data);
             const user_id = data[0].id;
             // Create tokens
             const accessToken = jwt.sign({ user_id }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '5m' });
@@ -177,34 +174,49 @@ const verifyJWT = (req, res, next) => {
 };
 const handleRefreshToken = (req, res) => {
     const cookies = req.cookies;
+    //console.log('------------------------------------------------------');
+    //console.log('Cookies:', cookies); // Log cookies
     if (!(cookies === null || cookies === void 0 ? void 0 : cookies.jwt)) {
+        //console.error('No JWT cookie found');
         res.sendStatus(401);
         return;
     }
     const refreshToken = cookies.jwt;
     const q = 'SELECT * FROM Users WHERE refresh_token=?';
     mysqlConnection.query(q, [refreshToken], (err, data) => {
-        if (err)
+        if (err) {
+            //console.error('Database error:', err);
             return res.sendStatus(403);
-        if (!data)
+        }
+        if (!data || data.length === 0) {
+            //console.error('No user found for refresh token');
             return res.status(404).send({ error: 'User not found' });
+        }
+        //console.log('User found:', (data as any)[0].email); // Log query result
         const user_id = data[0].id;
         jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
             if (err || user_id !== decoded.user_id) {
+                //console.error('Token verification failed:', err);
                 return res.sendStatus(403);
             }
             const accessToken = jwt.sign({ user_id }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '5m' });
+            //console.log('Access token generated:', accessToken); // Log new token
             res.status(200).send({ accessToken, error: 'No Error' });
         });
     });
 };
+//Cors Options
+const corsOptions = {
+    origin: 'http://localhost:5173', // Explicitly allow your frontend origin
+    credentials: true, // Allow cookies and credentials
+};
 //Middleware
 const app = express();
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 //Routes
-app.route('/api/refresh').post(handleRefreshToken);
+app.route('/api/refresh').get(handleRefreshToken);
 app.route('/api/users/register').post(registerUser);
 app.route('/api/users/login').post(loginUser);
 app.route('/api/users/logout').post(logoutUser);

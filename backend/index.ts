@@ -8,7 +8,6 @@ import mysql from 'mysql2';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
-import { error } from 'console';
 
 const mysqlConnection = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -200,7 +199,10 @@ const verifyJWT = (
 };
 const handleRefreshToken = (req: express.Request, res: express.Response) => {
   const cookies = req.cookies;
+  //console.log('------------------------------------------------------');
+  //console.log('Cookies:', cookies); // Log cookies
   if (!cookies?.jwt) {
+    //console.error('No JWT cookie found');
     res.sendStatus(401);
     return;
   }
@@ -209,9 +211,16 @@ const handleRefreshToken = (req: express.Request, res: express.Response) => {
   const q = 'SELECT * FROM Users WHERE refresh_token=?';
 
   mysqlConnection.query(q, [refreshToken], (err, data) => {
-    if (err) return res.sendStatus(403);
-    if (!data) return res.status(404).send({ error: 'User not found' });
+    if (err) {
+      //console.error('Database error:', err);
+      return res.sendStatus(403);
+    }
+    if (!data || (data as any).length === 0) {
+      //console.error('No user found for refresh token');
+      return res.status(404).send({ error: 'User not found' });
+    }
 
+    //console.log('User found:', (data as any)[0].email); // Log query result
     const user_id = (data as any)[0].id;
 
     jwt.verify(
@@ -219,6 +228,7 @@ const handleRefreshToken = (req: express.Request, res: express.Response) => {
       process.env.REFRESH_TOKEN_SECRET!,
       (err: any, decoded: any) => {
         if (err || user_id !== (decoded as any).user_id) {
+          //console.error('Token verification failed:', err);
           return res.sendStatus(403);
         }
 
@@ -228,20 +238,27 @@ const handleRefreshToken = (req: express.Request, res: express.Response) => {
           { expiresIn: '5m' }
         );
 
+        //console.log('Access token generated:', accessToken); // Log new token
         res.status(200).send({ accessToken, error: 'No Error' });
       }
     );
   });
 };
 
+//Cors Options
+const corsOptions = {
+  origin: 'http://localhost:5173', // Explicitly allow your frontend origin
+  credentials: true, // Allow cookies and credentials
+};
+
 //Middleware
 const app = express();
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
 //Routes
-app.route('/api/refresh').post(handleRefreshToken);
+app.route('/api/refresh').get(handleRefreshToken);
 app.route('/api/users/register').post(registerUser);
 app.route('/api/users/login').post(loginUser);
 app.route('/api/users/logout').post(logoutUser);

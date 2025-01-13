@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import ErrorPopup from '../components/ErrorPopup';
 import { registerUser } from '../api';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -115,9 +115,9 @@ const Signup = () => {
           </form>
           <p className="p-small">
             Already have an account?{' '}
-            <a className="text-c-blue" href="/sign-in">
+            <Link className="text-c-blue" to="/sign-in">
               Signin
-            </a>
+            </Link>
           </p>
           <div className="flex flex-row items-center w-full my-8">
             <hr className="h-[1px] bg-[#fff] flex-1" />

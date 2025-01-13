@@ -1,3 +1,5 @@
+import { Dispatch, SetStateAction } from 'react';
+
 export type UserInfo = {
   username: string;
   email: string;
@@ -9,9 +11,13 @@ export type AuthContextType = {
     password: string;
     accessToken: string;
   };
-  setAuth: (auth: {
-    email: string;
-    password: string;
-    accessToken: string;
-  }) => void;
+  setAuth: Dispatch<
+    SetStateAction<{ email: string; password: string; accessToken: string }>
+  >;
+};
+
+export const initialAuthState = {
+  email: '',
+  password: '',
+  accessToken: '',
 };

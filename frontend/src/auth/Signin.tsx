@@ -1,12 +1,16 @@
-import { useContext, useState } from 'react';
+import { useState } from 'react';
 import { loginUser } from '../api';
 import ErrorPopup from '../components/ErrorPopup';
-import AuthContext from '../context/AuthProvider';
-import { useNavigate } from 'react-router-dom';
+
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import useAuth from '../hooks/useAuth';
 
 const Signin = () => {
+  const { setAuth } = useAuth();
+
   const navigate = useNavigate();
-  const { setAuth } = useContext(AuthContext);
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/';
 
   let [email, setEmail] = useState<string>('');
   let [password, setPassword] = useState<string>('');
@@ -34,7 +38,8 @@ const Signin = () => {
     if (res.error === 'No Error') {
       const token = res.accessToken;
       setAuth({ email, password, accessToken: token });
-      navigate('/');
+
+      navigate(from, { replace: true });
     } else {
       setErrorMessage(res.error);
     }
@@ -76,9 +81,9 @@ const Signin = () => {
           </form>
           <p className="p-small">
             Don't have an account?{' '}
-            <a className="text-c-blue" href="/sign-up">
+            <Link className="text-c-blue" to="/sign-up">
               Signup
-            </a>
+            </Link>
           </p>
           <div className="flex flex-row items-center w-full my-8">
             <hr className="h-[1px] bg-[#fff] flex-1" />
