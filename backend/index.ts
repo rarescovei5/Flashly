@@ -86,7 +86,7 @@ const loginUser = (req: express.Request, res: express.Response) => {
       return res.status(500).send({ error: 'Error while logging in' });
     }
 
-    if (data) {
+    if ((data as any).length > 0) {
       const user_id = (data as any)[0].id;
 
       // Create tokens

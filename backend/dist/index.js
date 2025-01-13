@@ -76,6 +76,7 @@ const loginUser = (req, res) => {
         req.body.email,
         crypto.createHash('sha256').update(req.body.password).digest('hex'),
     ];
+    console.log(values);
     mysqlConnection.query(q, values, (err, data) => {
         //------------------Error Handling - Typescript screams at you if you don't do this
         if (err)
@@ -83,7 +84,8 @@ const loginUser = (req, res) => {
         if (!process.env.ACCESS_TOKEN_SECRET || !process.env.REFRESH_TOKEN_SECRET) {
             return res.status(500).send({ error: 'Error while logging in' });
         }
-        if (data) {
+        if (data.length > 0) {
+            console.log(data);
             const user_id = data[0].id;
             // Create tokens
             const accessToken = jwt.sign({ user_id }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '5m' });

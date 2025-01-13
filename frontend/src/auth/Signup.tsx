@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import ErrorPopup from '../components/ErrorPopup';
+import { registerUser } from '../api';
+import { useNavigate } from 'react-router-dom';
 
 const Signup = () => {
+  const navigate = useNavigate();
   let [email, setEmail] = useState<string>('');
   let [username, setUsername] = useState<string>('');
   let [password1, setPassword1] = useState<string>('');
@@ -27,13 +30,35 @@ const Signup = () => {
       setUsername(value);
     }
   };
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     setErrorMessage('');
     e.preventDefault();
 
     if (password1 !== password2) {
       setErrorMessage('Passwords do not match');
       return;
+    } else if (password1.length < 8) {
+      setErrorMessage('Password must be at least 8 characters');
+      return;
+    } else if (password1.length > 24) {
+      setErrorMessage('Password must be less than 24 characters');
+      return;
+    } else if (!/(?=.*[a-z])/.test(password1)) {
+      setErrorMessage('Password must contain at least one lowercase letter');
+      return;
+    } else if (!/(?=.*[A-Z])/.test(password1)) {
+      setErrorMessage('Password must contain at least one uppercase letter');
+      return;
+    } else if (!/(?=.*\d)/.test(password1)) {
+      setErrorMessage('Password must contain at least one number');
+      return;
+    }
+
+    const res = await registerUser({ email, username, password: password1 });
+    if (res.error === 'No Error') {
+      navigate('/sign-in');
+    } else {
+      setErrorMessage(res.error);
     }
   };
 
@@ -50,21 +75,21 @@ const Signup = () => {
           >
             <input
               className="p-small py-3 px-4 rounded-2xl bg-c-dark placeholder:p-small placeholder:text-white text-white outline-none"
-              type="email"
-              required={true}
-              value={email}
-              placeholder="Email"
-              onChange={handleChange}
-              name="email"
-            />
-            <input
-              className="p-small py-3 px-4 rounded-2xl bg-c-dark placeholder:p-small placeholder:text-white text-white outline-none"
               type="text"
               required={true}
               value={username}
               placeholder="Username"
               onChange={handleChange}
               name="username"
+            />
+            <input
+              className="p-small py-3 px-4 rounded-2xl bg-c-dark placeholder:p-small placeholder:text-white text-white outline-none"
+              type="email"
+              required={true}
+              value={email}
+              placeholder="Email"
+              onChange={handleChange}
+              name="email"
             />
             <input
               className="p-small py-3 px-4 rounded-2xl bg-c-dark placeholder:p-small placeholder:text-white text-white outline-none"

@@ -1,19 +1,27 @@
 import axios from 'axios';
 import { UserInfo } from '../types';
 
-export const api = axios.create({
-  baseURL: 'http://localhost:3000',
-});
+const registerURL = 'http://localhost:3000/api/users/register';
+const loginURL = 'http://localhost:3000/api/users/login';
 
-const registerURL = '/api/users';
-
-export const createUser = async (user: UserInfo) => {
-  let response;
+export const registerUser = async (user: UserInfo) => {
   try {
-    response = await api.post(registerURL, user);
-  } catch (error) {
-    console.error(error);
+    //Create User in the Database
+    const res1 = await axios.post(registerURL, user);
+    if (res1.data.erorr !== 'error') return res1.data;
+    return res1.data;
+  } catch (error: any) {
+    return error.response.data;
   }
-
-  if (response!.data.error !== '') return response!.data.error;
+};
+export const loginUser = async (user: { email: string; password: string }) => {
+  try {
+    const response = await axios.post(loginURL, {
+      email: user.email,
+      password: user.password,
+    });
+    return response.data;
+  } catch (error: any) {
+    return error.response.data;
+  }
 };
