@@ -5,9 +5,11 @@ const Navbar = () => {
   const { auth } = useAuth();
 
   return (
-    <div className="flex items-center w-[80%] mx-auto mt-4">
+    <div className="flex items-center w-[80%] mx-auto pt-4">
       <div className="flex-1">
-        <h3 className="h3">Flashly</h3>
+        <Link className="h3" to="/">
+          Flashly
+        </Link>
       </div>
       <div className="rounded-2xl bg-c-light flex-1 px-4 py-2 flex">
         <img className=" mr-2" src="/search.svg" alt="" />

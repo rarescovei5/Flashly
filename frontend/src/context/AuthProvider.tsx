@@ -2,7 +2,11 @@ import { createContext, useState } from 'react';
 import React from 'react';
 import { AuthContextType } from '../types';
 
-import { initialAuthState } from '../types';
+export const initialAuthState = {
+  email: '',
+  password: '',
+  accessToken: '',
+};
 
 const AuthContext = createContext<AuthContextType>({
   auth: initialAuthState,

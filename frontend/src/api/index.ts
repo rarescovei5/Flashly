@@ -33,14 +33,10 @@ export const registerUser = async (user: UserInfo) => {
 };
 export const loginUser = async (user: { email: string; password: string }) => {
   try {
-    const response = await axiosInstance.post(
-      loginURL,
-      {
-        email: user.email,
-        password: user.password,
-      },
-      { withCredentials: true }
-    );
+    const response = await axiosInstance.post(loginURL, {
+      email: user.email,
+      password: user.password,
+    });
     return response.data;
   } catch (error: any) {
     return error.response.data;

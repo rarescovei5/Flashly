@@ -129,14 +129,21 @@ const logoutUser = (req, res) => {
     });
 };
 const createFlashCard = (req, res) => {
-    const q = `INSERT INTO Flashcards (user_id, name, content,settings)
-VALUES (?);`;
+    //get the number of how many decks a user has
+    const q1 = 'SELECT * FROM Users WHERE id=?';
     const user_id = req.body.user_id;
-    const name = req.body.name;
-    const content = req.body.content;
+    const nextDeckId = mysqlConnection.query(q1, [user_id], (err, data) => {
+        if (err)
+            return res.status(500).send({ error: err });
+        return data.length + 1;
+    });
+    const name = `Deck ${nextDeckId}`;
+    const content = '8@Question6@Answer';
     const defaultSettings = '';
+    const q2 = `INSERT INTO Flashcards (user_id, name, content,settings)
+  VALUES (?);`;
     const values = [user_id, name, content, defaultSettings];
-    mysqlConnection.query(q, [values], (err, data) => {
+    mysqlConnection.query(q2, [values], (err, data) => {
         if (err)
             return res.status(500).send({ error: err });
         return res.status(200).send({ error: 'No Error' });
@@ -149,7 +156,7 @@ const getUsersFlashcards = (req, res) => {
             return res.status(500).send({ error: err });
         if (!data)
             return res.status(404).send({ error: 'No flashcards found' });
-        return res.status(200).send({ data, error: 'No Error' });
+        return res.status(200).send({ decks: data, error: 'No Error' });
     });
 };
 const verifyJWT = (req, res, next) => {

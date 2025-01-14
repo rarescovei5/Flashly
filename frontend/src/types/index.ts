@@ -15,9 +15,3 @@ export type AuthContextType = {
     SetStateAction<{ email: string; password: string; accessToken: string }>
   >;
 };
-
-export const initialAuthState = {
-  email: '',
-  password: '',
-  accessToken: '',
-};
