@@ -66,7 +66,9 @@ const Signup = () => {
     <>
       <ErrorPopup error={errorMessage} xr={2} yb={4} />
       <div className="flex flex-col items-center mx-auto w-2/3 h-screen">
-        <h1 className="h3 mt-4"> Flashly</h1>
+        <Link className="h3 mt-4" to="/">
+          Flashly
+        </Link>
         <div className="flex flex-col items-center bg-c-light px-4 py-6 rounded-2xl my-auto w-full max-w-[400px] min-w-80">
           <h4 className="h4 mb-6">Signup</h4>
           <form
