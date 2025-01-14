@@ -29,6 +29,20 @@
   }
 }
 @layer components {
+  /* width */
+  ::-webkit-scrollbar {
+    @apply w-3;
+  }
+
+  /* Track */
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    @apply bg-c-light rounded-2xl;
+  }
 }
 @layer utilities {
 }

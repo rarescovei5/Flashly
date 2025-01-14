@@ -144,26 +144,30 @@ const logoutUser = (req: express.Request, res: express.Response) => {
 };
 const createFlashCard = (req: express.Request, res: express.Response) => {
   //get the number of how many decks a user has
-  const q1 = 'SELECT * FROM Users WHERE id=?';
+  const q1 = 'SELECT * FROM flashcards WHERE user_id=?';
   const user_id = req.body.user_id;
 
-  const nextDeckId = mysqlConnection.query(q1, [user_id], (err, data) => {
+  mysqlConnection.query(q1, [user_id], (err, data) => {
     if (err) return res.status(500).send({ error: err });
 
-    return (data as any).length + 1;
-  });
+    const nextDeckId = (data as any).length + 1;
 
-  const name = `Deck ${nextDeckId}`;
-  const content = '8@Question6@Answer';
-  const defaultSettings = '';
+    if (nextDeckId > 10)
+      return res.status(500).send({ error: 'You can only have 10 decks' });
 
-  const q2 = `INSERT INTO Flashcards (user_id, name, content,settings)
+    const name = `Deck ${nextDeckId}`;
+    const content = '8@Question6@Answer';
+    const defaultSettings = '';
+
+    const q2 = `INSERT INTO Flashcards (user_id, name, content,settings)
   VALUES (?);`;
-  const values = [user_id, name, content, defaultSettings];
-  mysqlConnection.query(q2, [values], (err, data) => {
-    if (err) return res.status(500).send({ error: err });
+    const values = [user_id, name, content, defaultSettings];
 
-    return res.status(200).send({ error: 'No Error' });
+    mysqlConnection.query(q2, [values], (err, data) => {
+      if (err) return res.status(500).send({ error: err });
+
+      return res.status(200).send({ error: 'No Error' });
+    });
   });
 };
 const getUsersFlashcards = (req: express.Request, res: express.Response) => {

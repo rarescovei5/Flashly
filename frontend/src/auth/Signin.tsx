@@ -14,13 +14,13 @@ const Signin = () => {
 
   let [email, setEmail] = useState<string>('');
   let [password, setPassword] = useState<string>('');
-  let [errorMessage, setErrorMessage] = useState<string>('');
+  let [errorMsg, setErrorMsg] = useState<string>('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.name;
     const value = e.target.value;
 
-    setErrorMessage('');
+    setErrorMsg('');
 
     if (name === 'email') {
       setEmail(value);
@@ -30,7 +30,7 @@ const Signin = () => {
     }
   };
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    setErrorMessage('');
+    setErrorMsg('');
     e.preventDefault();
 
     const res = await loginUser({ email, password });
@@ -41,13 +41,13 @@ const Signin = () => {
 
       navigate(from, { replace: true });
     } else {
-      setErrorMessage(res.error);
+      setErrorMsg(res.error);
     }
   };
 
   return (
     <>
-      <ErrorPopup error={errorMessage} xr={2} yb={4} />
+      <ErrorPopup error={errorMsg} setError={setErrorMsg} xr={2} yb={4} />
       <div className="flex flex-col items-center mx-auto w-2/3 h-screen">
         <Link className="h3 mt-4" to="/">
           Flashly

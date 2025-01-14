@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const initialDeckState = {
+export const initialDeckState = {
   id: 5,
   user_id: 1,
   name: 'Deck [object Object]',

@@ -6,7 +6,7 @@ const Navbar = () => {
 
   return (
     <div className="flex items-center w-[80%] mx-auto pt-4">
-      <div className="flex-1">
+      <div className="flex-1 overflow-hidden">
         <Link className="h3" to="/">
           Flashly
         </Link>

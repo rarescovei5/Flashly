@@ -1,37 +1,8 @@
 import React from 'react';
 
-function formatError(error: string) {
-  const chunkSize = 40;
-  const words = error.split(' ');
-  const chunks = [];
-  let currentChunk = '';
-
-  for (const word of words) {
-    if (currentChunk.length + word.length + 1 > chunkSize) {
-      chunks.push(currentChunk);
-      currentChunk = word;
-    } else {
-      if (currentChunk !== '') {
-        currentChunk += ' ';
-      }
-      currentChunk += word;
-    }
-  }
-
-  if (currentChunk !== '') {
-    chunks.push(currentChunk);
-  }
-
-  return chunks.map((chunk, index) => (
-    <React.Fragment key={index}>
-      {chunk}
-      {index < chunks.length - 1 && <br />}
-    </React.Fragment>
-  ));
-}
-
 const ErrorPopup = (props: {
   error: string;
+  setError: React.Dispatch<React.SetStateAction<string>>;
   xr?: number;
   xl?: number;
   yt?: number;
@@ -39,37 +10,49 @@ const ErrorPopup = (props: {
 }) => {
   if (props.error === '') return <></>;
 
-  let left =
-    props.xl !== undefined
-      ? `${props.xl < 0 ? `-left-${Math.abs(props.xl)}` : `left-${props.xl}`}`
-      : '';
-  let right =
-    props.xr !== undefined
-      ? `${props.xr < 0 ? `-right-${Math.abs(props.xr)}` : `right-${props.xr}`}`
-      : '';
-  let top =
-    props.yt !== undefined
-      ? `${props.yt < 0 ? `-top-${Math.abs(props.yt)}` : `top-${props.yt}`}`
-      : '';
-  let bottom =
-    props.yb !== undefined
-      ? `${
-          props.yb < 0 ? `-bottom-${Math.abs(props.yb)}` : `bottom-${props.yb}`
-        }`
-      : '';
+  const positionStyles: React.CSSProperties = {};
 
+  if (
+    props.xl !== undefined &&
+    props.xr !== undefined &&
+    props.xl === props.xr
+  ) {
+    positionStyles.left = '50%';
+    positionStyles.transform = 'translateX(-50%)';
+  } else if (props.xl !== undefined) {
+    positionStyles.left = `${
+      props.xl < 0 ? `-${Math.abs(props.xl)}rem` : `${props.xl}rem`
+    }`;
+  } else if (props.xr !== undefined) {
+    positionStyles.right = `${
+      props.xr < 0 ? `-${Math.abs(props.xr)}rem` : `${props.xr}rem`
+    }`;
+  }
+
+  if (props.yt !== undefined) {
+    positionStyles.top = `${
+      props.yt < 0 ? `-${Math.abs(props.yt)}rem` : `${props.yt}rem`
+    }`;
+  }
+
+  if (props.yb !== undefined) {
+    positionStyles.bottom = `${
+      props.yb < 0 ? `-${Math.abs(props.yb)}rem` : `${props.yb}rem`
+    }`;
+  }
   return (
     <div
-      className={`absolute z-50  ${top} ${right} ${bottom} ${left} bg-c-light p-4 rounded-2xl`}
+      style={positionStyles}
+      className="fixed z-50  bg-red-900 p-4 rounded-2xl max-w-sm border-c-dark border-2"
       id="error-popup"
     >
-      {/* <button
-        className="absolute top-0 right-0  translate-x-[50%] translate-y-[-50%] p-small flex items-center justify-center bg-red-900 text-bg-c-dark rounded-full w-6 h-6"
-        onClick={() => document.getElementById('error-popup')?.remove()}
+      <button
+        className="absolute top-0 right-0  translate-x-[50%] translate-y-[-50%] p-small flex items-center justify-center bg-red-900 text-bg-c-dark rounded-full w-6 h-6 border-c-dark border-2"
+        onClick={() => props.setError('')}
       >
         X
-      </button> */}
-      <p className="p-small text-red-900">{formatError(props.error)}</p>
+      </button>
+      <p className="p-small text-[#fff] text-wrap">{props.error}</p>
     </div>
   );
 };

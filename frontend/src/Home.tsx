@@ -3,9 +3,12 @@ import Navbar from './components/Navbar';
 
 const Home = () => {
   return (
-    <div className="flex flex-col gap-4">
+    <>
       <Navbar />
-    </div>
+      <div className="flex justify-end flex-col flex-1  mx-auto overflow-y-auto">
+        <img className="h-[90%]" src="/home.png" alt="" />
+      </div>
+    </>
   );
 };
 

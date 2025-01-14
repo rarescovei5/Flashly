@@ -9,13 +9,13 @@ const Signup = () => {
   let [username, setUsername] = useState<string>('');
   let [password1, setPassword1] = useState<string>('');
   let [password2, setPassword2] = useState<string>('');
-  let [errorMessage, setErrorMessage] = useState<string>('');
+  let [errorMsg, setErrorMsg] = useState<string>('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.name;
     const value = e.target.value;
 
-    setErrorMessage('');
+    setErrorMsg('');
 
     if (name === 'email') {
       setEmail(value);
@@ -31,26 +31,26 @@ const Signup = () => {
     }
   };
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    setErrorMessage('');
+    setErrorMsg('');
     e.preventDefault();
 
     if (password1 !== password2) {
-      setErrorMessage('Passwords do not match');
+      setErrorMsg('Passwords do not match');
       return;
     } else if (password1.length < 8) {
-      setErrorMessage('Password must be at least 8 characters');
+      setErrorMsg('Password must be at least 8 characters');
       return;
     } else if (password1.length > 24) {
-      setErrorMessage('Password must be less than 24 characters');
+      setErrorMsg('Password must be less than 24 characters');
       return;
     } else if (!/(?=.*[a-z])/.test(password1)) {
-      setErrorMessage('Password must contain at least one lowercase letter');
+      setErrorMsg('Password must contain at least one lowercase letter');
       return;
     } else if (!/(?=.*[A-Z])/.test(password1)) {
-      setErrorMessage('Password must contain at least one uppercase letter');
+      setErrorMsg('Password must contain at least one uppercase letter');
       return;
     } else if (!/(?=.*\d)/.test(password1)) {
-      setErrorMessage('Password must contain at least one number');
+      setErrorMsg('Password must contain at least one number');
       return;
     }
 
@@ -58,13 +58,13 @@ const Signup = () => {
     if (res.error === 'No Error') {
       navigate('/sign-in');
     } else {
-      setErrorMessage(res.error);
+      setErrorMsg(res.error);
     }
   };
 
   return (
     <>
-      <ErrorPopup error={errorMessage} xr={2} yb={4} />
+      <ErrorPopup error={errorMsg} setError={setErrorMsg} xr={2} yb={4} />
       <div className="flex flex-col items-center mx-auto w-2/3 h-screen">
         <Link className="h3 mt-4" to="/">
           Flashly
