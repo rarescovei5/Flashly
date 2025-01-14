@@ -139,7 +139,7 @@ const logoutUser = (req: express.Request, res: express.Response) => {
       sameSite: 'none',
       secure: true,
     });
-    res.status(204).send({ error: 'No Error' });
+    res.status(200).send({ error: 'No Error' });
   });
 };
 const createFlashCard = (req: express.Request, res: express.Response) => {

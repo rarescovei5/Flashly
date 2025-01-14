@@ -1,9 +1,10 @@
 import axios from 'axios';
 import { UserInfo } from '../types';
 
+const baseURL = 'http://localhost:3000/api';
 const registerURL = '/users/register';
 const loginURL = '/users/login';
-const baseURL = 'http://localhost:3000/api';
+const logoutURL = '/users/logout';
 
 export const axiosPrivateInstance = axios.create({
   baseURL: baseURL,
@@ -40,5 +41,12 @@ export const loginUser = async (user: { email: string; password: string }) => {
     return response.data;
   } catch (error: any) {
     return error.response.data;
+  }
+};
+export const logoutUser = async () => {
+  try {
+    await axiosInstance.post(logoutURL);
+  } catch (err) {
+    console.log(err);
   }
 };

@@ -1,11 +1,14 @@
 import { Link } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
-
+import { useState } from 'react';
+import { logoutUser } from '../api';
+import { initialAuthState } from '../context/AuthProvider';
 const Navbar = () => {
-  const { auth } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+  const { auth, setAuth } = useAuth();
 
   return (
-    <div className="flex items-center w-[80%] mx-auto pt-4">
+    <div className="flex items-center w-[80%] mx-auto pt-4 z-[100]">
       <div className="flex-1 overflow-hidden">
         <Link className="h3" to="/">
           Flashly
@@ -25,9 +28,33 @@ const Navbar = () => {
             <Link className="p-small" to={'/decks'}>
               Decks
             </Link>
-            <button className="bg-c-primary p-2 rounded-full">
-              <img src="/man.svg" alt="" />
-            </button>
+            <div className="relative">
+              <button
+                className="bg-c-primary p-2 rounded-full"
+                onClick={() => {
+                  setIsOpen((prev) => !prev);
+                }}
+              >
+                <img src="/man.svg" alt="" />
+              </button>
+              {isOpen && (
+                <div className="absolute flex flex-col items-center top-[150%] right-0 bg-c-light w-52 rounded-2xl p-4 border-2 border-c-dark">
+                  <Link className="mb-4" to="/profile">
+                    View profile
+                  </Link>
+                  <button
+                    className="text-c-blue"
+                    onClick={() => {
+                      logoutUser();
+                      setAuth(initialAuthState);
+                      window.location.reload();
+                    }}
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           <div className="inline-flex gap-4 ">
