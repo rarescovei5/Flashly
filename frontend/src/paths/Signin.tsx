@@ -6,11 +6,11 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
 
 const Signin = () => {
-  const { setAuth } = useAuth();
-
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/';
+
+  const { setAuth } = useAuth();
 
   let [email, setEmail] = useState<string>('');
   let [password, setPassword] = useState<string>('');

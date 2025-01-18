@@ -43,6 +43,15 @@
   ::-webkit-scrollbar-thumb {
     @apply bg-c-light rounded-2xl;
   }
+
+  /**/
+  ::-webkit-inner-spin-button {
+    @apply appearance-none;
+  }
+
+  ::-webkit-outer-spin-button {
+    @apply appearance-none;
+  }
 }
 @layer utilities {
 }

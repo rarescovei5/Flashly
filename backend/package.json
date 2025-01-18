@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "server": "node dist/index.js"
+    "server": "node ./dist/index.js"
   },
   "keywords": [],
   "author": "",

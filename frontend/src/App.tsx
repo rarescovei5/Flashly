@@ -1,26 +1,31 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Home from './Home';
-import Signin from './auth/Signin';
-import Signup from './auth/Signup';
-import Decks from './deck/Decks';
-import Deck from './deck/Deck';
-import PlayDeck from './deck/PlayDeck';
-import Discover from './deck/Discover';
-import RequireAuth from './RequireAuth';
+import Home from './paths/Home';
+import Signin from './paths/Signin';
+import Signup from './paths/Signup';
+import Decks from './paths/Decks';
+import Deck from './paths/Deck';
+import PlayDeck from './paths/PlayDeck';
+import Discover from './paths/Discover';
+import RequireAuth from './auth/RequireAuth';
+import PersistAuth from './auth/PersistAuth';
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />
         <Route path="/sign-in" element={<Signin />} />
         <Route path="/sign-up" element={<Signup />} />
 
-        <Route element={<RequireAuth />}>
-          <Route path="/decks" element={<Decks />} />
-          <Route path="/decks/:deckId" element={<Deck />} />
-          <Route path="/decks/:deckId/play" element={<PlayDeck />} />
-          <Route path="/decks/discover" element={<Discover />} />
+        <Route element={<PersistAuth />}>
+          <Route path="/" element={<Home />} />
+          <Route element={<RequireAuth />}>
+            <Route path="/decks" element={<Decks />} />
+            <Route path="/decks/:deckId" element={<Deck />} />
+            <Route path="/decks/:deckId/play" element={<PlayDeck />} />
+            <Route path="/decks/discover" element={<Discover />} />
+          </Route>
         </Route>
+
+        <Route path="/*" element={<h1>404</h1>}></Route>
       </Routes>
     </BrowserRouter>
   );

@@ -6,16 +6,6 @@ import { Link } from 'react-router-dom';
 import Cardstack from '../components/Cardstack';
 import ErrorPopup from '../components/ErrorPopup';
 
-const getColor = (settings: string) => {
-  if (settings.includes('c-light')) return 'c-light';
-  if (settings.includes('c-primary')) return 'c-primary';
-  if (settings.includes('c-blue')) return 'c-blue';
-  if (settings.includes('c-green')) return 'c-green';
-  if (settings.includes('c-orange')) return 'c-orange';
-  if (settings.includes('c-pink')) return 'c-pink';
-  return 'c-primary';
-};
-
 const Decks = () => {
   const { decks, setDecks } = useDecks();
   const [errorMsg, setErrorMsg] = useState('');
@@ -114,12 +104,21 @@ const Decks = () => {
 
                     {(deck.content.match(/;/g) || []).length > 1 ? (
                       (deck.content.match(/;/g) || []).length > 2 ? (
-                        <Cardstack length={3} color={getColor(deck.settings)} />
+                        <Cardstack
+                          length={3}
+                          color={deck.settings.defaultSettings.deckColor}
+                        />
                       ) : (
-                        <Cardstack length={2} color={getColor(deck.settings)} />
+                        <Cardstack
+                          length={2}
+                          color={deck.settings.defaultSettings.deckColor}
+                        />
                       )
                     ) : (
-                      <Cardstack length={1} color={getColor(deck.settings)} />
+                      <Cardstack
+                        length={1}
+                        color={deck.settings.defaultSettings.deckColor}
+                      />
                     )}
                   </Link>
                 </div>
@@ -143,7 +142,13 @@ const Decks = () => {
         <div className=" flex flex-col items-center justify-center mb-20 w-[80%] flex-1 mx-auto  ">
           <img src="/noDecks.svg" alt="" />
           <h3 className="h3 mb-6">You currently have no decks!</h3>
-          <button className="p-button bg-c-primary text-c-dark px-4 py-2 rounded-2xl">
+          <button
+            className="p-button bg-c-primary text-c-dark px-4 py-2 rounded-2xl"
+            onClick={() => {
+              setErrorMsg('');
+              setCreating(true);
+            }}
+          >
             Create Deck
           </button>
         </div>

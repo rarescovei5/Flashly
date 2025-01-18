@@ -157,11 +157,28 @@ const createFlashCard = (req: express.Request, res: express.Response) => {
 
     const name = `Deck ${nextDeckId}`;
     const content = '8@Question6@Answer';
-    const defaultSettings = '';
+    const defaultSettings = {
+      defaultSettings: {
+        deckColor: 'c-primary',
+        timer: {
+          maximumTime: 60,
+          showTimer: false,
+          calculateTime: false,
+        },
+        displayOrder: 'Display cards in increasing order',
+        dailyLimits: {
+          newCards: 20,
+          maximumReviews: 999,
+        },
+      },
+      dangerSettings: {
+        public: false,
+      },
+    };
 
     const q2 = `INSERT INTO Flashcards (user_id, name, content,settings)
   VALUES (?);`;
-    const values = [user_id, name, content, defaultSettings];
+    const values = [user_id, name, content, JSON.stringify(defaultSettings)];
 
     mysqlConnection.query(q2, [values], (err, data) => {
       if (err) return res.status(500).send({ error: err });
@@ -177,6 +194,35 @@ const getUsersFlashcards = (req: express.Request, res: express.Response) => {
     if (err) return res.status(500).send({ error: err });
     if (!data) return res.status(404).send({ error: 'No flashcards found' });
     return res.status(200).send({ decks: data, error: 'No Error' });
+  });
+};
+const getUsersFlashcard = (req: express.Request, res: express.Response) => {
+  const q = 'SELECT * FROM flashcards WHERE id=?';
+  const id = req.params.id;
+
+  const values = [id];
+  mysqlConnection.query(q, values, (err, data) => {
+    if (err) return res.send({ error: err });
+
+    if (!data) return res.status(404).send({ error: 'No flashcard found' });
+    return res.status(200).send({ deck: data, error: 'No Error' });
+  });
+};
+const updateFlashcard = (req: express.Request, res: express.Response) => {
+  const q =
+    'UPDATE flashcards SET name = ?, content = ?, settings = ?, updated_at = NOW() WHERE id = ?';
+
+  const id = req.params.id;
+  const name = req.body.name;
+  const content = req.body.content;
+  const settings = req.body.settings;
+
+  const values = [name, content, JSON.stringify(settings), id];
+  mysqlConnection.query(q, values, (err, data) => {
+    if (err) return res.send({ error: err });
+    if (!data) return res.status(404).send({ error: 'No flashcard found' });
+
+    return res.status(200).send({ error: 'No Error' });
   });
 };
 
@@ -278,7 +324,10 @@ app
   .route('/api/flashcards')
   .post(verifyJWT, createFlashCard)
   .get(verifyJWT, getUsersFlashcards);
-
+app
+  .route('/api/flashcards/:id')
+  .get(verifyJWT, getUsersFlashcard)
+  .put(verifyJWT, updateFlashcard);
 //Server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

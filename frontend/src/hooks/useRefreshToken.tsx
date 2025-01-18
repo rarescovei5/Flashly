@@ -9,11 +9,15 @@ const useRefreshToken = () => {
       const response = await axiosInstance.get('/refresh', {
         withCredentials: true,
       });
-      console.log('Response:', response.data); // Check if JSON is received
-      setAuth((prev) => ({
-        ...prev,
-        accessToken: response.data.accessToken,
-      }));
+      setAuth((prev) => {
+        // console.log(JSON.stringify(prev));
+        // console.log(JSON.stringify(response.data.accessToken));
+        return {
+          ...prev,
+          accessToken: response.data.accessToken,
+        };
+      });
+      return response.data.accessToken;
     } catch (error) {
       console.error('Error refreshing token:', error);
     }
