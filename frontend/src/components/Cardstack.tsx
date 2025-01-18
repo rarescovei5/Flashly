@@ -14,35 +14,35 @@ const Cardstack = (props: { length: number; color: string }) => {
     <div className="w-full  h-full rounded-2xl overflow-hidden">
       <div
         style={{ backgroundColor: colorMap[color][0] }}
-        className={`w-full h-full`}
+        className="w-full h-full"
       ></div>
     </div>
   );
   const cardstack2 = (
-    <div className="w-full h-full rounded-2xl overflow-hidden">
+    <div className="w-full h-full rounded-2xl overflow-hidden relative">
       <div
         style={{ backgroundColor: colorMap[color][0] }}
-        className={`w-[calc(100%-2rem)] h-full`}
+        className="w-[calc(100%-2rem)] h-full absolute top-0 left-0 z-[3]"
       ></div>
       <div
         style={{ backgroundColor: colorMap[color][1] }}
-        className={`w-full h-full`}
+        className="w-full h-full absolute top-0 left-0 z-[2]"
       ></div>
     </div>
   );
   const cardstack3 = (
-    <div className="w-full h-full rounded-2xl overflow-hidden">
+    <div className="w-full h-full rounded-2xl overflow-hidden  relative">
       <div
         style={{ backgroundColor: colorMap[color][0] }}
-        className={`w-[calc(100%-4rem)] h-full`}
+        className="w-[calc(100%-4rem)] h-full  absolute top-0 left-0 z-[3]"
       ></div>
       <div
         style={{ backgroundColor: colorMap[color][1] }}
-        className={`w-[calc(100%-2rem)] h-full`}
+        className="w-[calc(100%-2rem)] h-full absolute top-0 left-0 z-[2]"
       ></div>
       <div
         style={{ backgroundColor: colorMap[color][2] }}
-        className={`w-full h-full`}
+        className="w-full h-full absolute top-0 left-0 z-[1]"
       ></div>
     </div>
   );

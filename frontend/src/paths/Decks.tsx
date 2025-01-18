@@ -87,7 +87,7 @@ const Decks = () => {
               <div className="flex flex-col" key={`${deck.id}`}>
                 <div className="relative h-80">
                   <Link to={`/decks/${deck.id}`}>
-                    <div className="absolute left-4 top-4 bg-c-dark px-2 py-2 rounded-full">
+                    <div className="absolute left-4 top-4 bg-c-dark px-2 py-2 rounded-full z-10">
                       <svg
                         width="8"
                         height="8"
@@ -102,8 +102,8 @@ const Decks = () => {
                       </svg>
                     </div>
 
-                    {(deck.content.match(/;/g) || []).length > 1 ? (
-                      (deck.content.match(/;/g) || []).length > 2 ? (
+                    {(deck.content.match(/@/g) || []).length > 1 ? (
+                      (deck.content.match(/@/g) || []).length > 2 ? (
                         <Cardstack
                           length={3}
                           color={deck.settings.defaultSettings.deckColor}

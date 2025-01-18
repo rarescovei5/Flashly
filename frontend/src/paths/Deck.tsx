@@ -25,13 +25,13 @@ const Deck = () => {
 
   //Settigns Variables
   const [settingsOpen, setSettingsOpen] = useState(false);
-  let colorMap: { [key: string]: string } = {
-    'c-light': '#212121',
-    'c-primary': '#FBE87E',
-    'c-blue': '#1A87EC',
-    'c-green': '#71F65A',
-    'c-orange': '#FF7F3B',
-    'c-pink': '#FD4798',
+  let colorMap: { [key: string]: string[] } = {
+    'c-light': ['#212121', '#070707'],
+    'c-primary': ['#FBE87E', '#C7B666'],
+    'c-blue': ['#1A87EC', '#0F4786'],
+    'c-green': ['#71F65A', '#449832'],
+    'c-orange': ['#FF7F3B', '#B75F2B'],
+    'c-pink': ['#FD4798', '#B4326B'],
   };
 
   const contentToObjects = (encryptedString: string): Flashcard[] => {
@@ -219,7 +219,7 @@ const Deck = () => {
                         className="flex-1 aspect-square"
                       >
                         <div
-                          style={{ backgroundColor: colorMap[color] }}
+                          style={{ backgroundColor: colorMap[color][0] }}
                           className={`h-full rounded-full ${
                             deck?.settings.defaultSettings.deckColor === color
                               ? 'scale-75'
@@ -534,10 +534,15 @@ const Deck = () => {
         </div>
       )}
       {deck && !settingsOpen && (
-        <div className="w-[80%] mx-auto flex-1 my-10 flex flex-col gap-4">
-          <div className="flex justify-between items-center">
-            <div>
+        <div className="w-[80%] h-[80%] mx-auto my-10  flex flex-col gap-8 ">
+          <div className="flex justify-between items-center ">
+            <div className=" flex-1">
               <input
+                style={{
+                  width: `${
+                    deck.name.length > 0 ? `${deck.name.length}ch` : '100%'
+                  }`,
+                }}
                 className="h4 bg-transparent outline-none"
                 type="text"
                 value={deck.name}
@@ -576,11 +581,11 @@ const Deck = () => {
               </Link>
             </div>
           </div>
-          <div className="flex flex-[2] justify-between">
-            <div className="flex flex-col gap-2 basis-[55%] overflow-y-auto pr-4">
+          <div className="flex flex-1 justify-between ">
+            <div className="basis-[55%]  flex flex-col gap-2 overflow-y-auto">
               {cards.map((card, index) => (
                 <button
-                  className="flex justify-start w-full bg-c-light p-4 rounded-2xl p-small"
+                  className="group flex relative  bg-c-light p-4 rounded-2xl p-small overflow-hidden"
                   key={index}
                   onClick={() => {
                     setSelectedCard(index);
@@ -588,12 +593,29 @@ const Deck = () => {
                     setLocalQuestion(card.question);
                   }}
                 >
-                  {index + 1}. {card.question}{' '}
+                  {index + 1}. {card.question}
                   <span className="text-c-dark">-</span> {card.answer}
+                  <div
+                    className="group-hover:block hidden absolute right-4 top-1/2 -translate-y-1/2 hover:bg-c-dark px-2 py-2 rounded-full"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (cards.length === 1) {
+                        setErrorMsg('Deck must have at least 1 card');
+                        return;
+                      }
+                      if (index === selectedCard) setSelectedCard(-1);
+                      setCards((prevCards) => {
+                        return prevCards.filter((_, i) => i !== index);
+                      });
+                      setCardChange(true);
+                    }}
+                  >
+                    <img className=" w-2 h-2" src="/close.svg" alt="" />
+                  </div>
                 </button>
               ))}
               <button
-                className="w-full bg-c-light h-10  rounded-2xl flex justify-center items-center"
+                className=" bg-c-light h-10  rounded-2xl flex justify-center items-center"
                 onClick={() => {
                   setSelectedCard(-1);
                   setLocalAnswer('');
@@ -677,11 +699,36 @@ const Deck = () => {
               )}
             </div>
           </div>
-          <div className="flex flex-1 justify-between">
-            <div className="basis-[30%]"></div>
-            <div className="basis-[65%]">
-              <div></div>
-              <div></div>
+          <div className="flex justify-between ">
+            <div className="basis-[30%] h-full bg-c-light rounded-2xl p-4 flex flex-col gap-2">
+              <p>Deck Stats</p>
+              <hr />
+              <p>
+                New <span className="text-c-dark">(today)</span>
+              </p>
+              <p>Review</p>
+              <p>Due</p>
+              <p>Left</p>
+            </div>
+            <div className="basis-[65%] flex justify-between">
+              <div
+                className="basis-[49%] text-c-dark rounded-2xl flex justify-center items-center"
+                style={{
+                  backgroundColor:
+                    colorMap[deck.settings.defaultSettings.deckColor][0],
+                }}
+              >
+                {localQuestion}
+              </div>
+              <div
+                className="basis-[49%] text-c-dark rounded-2xl flex justify-center items-center"
+                style={{
+                  backgroundColor:
+                    colorMap[deck.settings.defaultSettings.deckColor][1],
+                }}
+              >
+                {localAnswer}
+              </div>
             </div>
           </div>
         </div>
