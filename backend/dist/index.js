@@ -130,7 +130,7 @@ const logoutUser = (req, res) => {
 };
 const createFlashCard = (req, res) => {
     //get the number of how many decks a user has
-    const q1 = 'SELECT * FROM flashcards WHERE user_id=?';
+    const q1 = 'SELECT * FROM decks WHERE user_id=?';
     const user_id = req.body.user_id;
     mysqlConnection.query(q1, [user_id], (err, data) => {
         if (err)
@@ -158,7 +158,7 @@ const createFlashCard = (req, res) => {
                 public: false,
             },
         };
-        const q2 = `INSERT INTO Flashcards (user_id, name, content,settings)
+        const q2 = `INSERT INTO decks (user_id, name, content,settings)
   VALUES (?);`;
         const values = [user_id, name, content, JSON.stringify(defaultSettings)];
         mysqlConnection.query(q2, [values], (err, data) => {
@@ -169,17 +169,17 @@ const createFlashCard = (req, res) => {
     });
 };
 const getUsersFlashcards = (req, res) => {
-    const q = 'SELECT * FROM flashcards WHERE user_id=?';
+    const q = 'SELECT * FROM decks WHERE user_id=?';
     mysqlConnection.query(q, [req.body.user_id], (err, data) => {
         if (err)
             return res.status(500).send({ error: err });
         if (!data)
-            return res.status(404).send({ error: 'No flashcards found' });
+            return res.status(404).send({ error: 'No decks found' });
         return res.status(200).send({ decks: data, error: 'No Error' });
     });
 };
 const getUsersFlashcard = (req, res) => {
-    const q = 'SELECT * FROM flashcards WHERE id=?';
+    const q = 'SELECT * FROM decks WHERE id=?';
     const id = req.params.id;
     const values = [id];
     mysqlConnection.query(q, values, (err, data) => {
@@ -191,7 +191,7 @@ const getUsersFlashcard = (req, res) => {
     });
 };
 const updateFlashcard = (req, res) => {
-    const q = 'UPDATE flashcards SET name = ?, content = ?, settings = ?, updated_at = NOW() WHERE id = ?';
+    const q = 'UPDATE decks SET name = ?, content = ?, settings = ?, updated_at = NOW() WHERE id = ?';
     const id = req.params.id;
     const name = req.body.name;
     const content = req.body.content;
