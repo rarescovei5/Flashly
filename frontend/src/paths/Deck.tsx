@@ -534,7 +534,7 @@ const Deck = () => {
         </div>
       )}
       {deck && !settingsOpen && (
-        <div className="w-[80%] flex-1  flex flex-col justify-between gap-8 mx-auto  my-10">
+        <div className="w-[80%] mx-auto my-10 flex-1  grid grid-cols-1 grid-rows-[max-content_1fr_max-content] gap-6">
           <div className="flex justify-between items-center ">
             <div className=" flex-1">
               <input
@@ -581,11 +581,11 @@ const Deck = () => {
               </Link>
             </div>
           </div>
-          <div className="flex flex-1 justify-between ">
-            {/*<div className="basis-[55%] h-full flex flex-col gap-2 overflow-y-auto">
+          <div className="flex justify-between ">
+            <div className="basis-[55%] max-h-[50vh] flex flex-col gap-2 overflow-y-auto pr-2">
               {cards.map((card, index) => (
                 <button
-                  className="group flex relative  bg-c-light p-4 rounded-2xl p-small overflow-hidden"
+                  className="group text-left relative bg-c-light p-4 rounded-2xl p-small"
                   key={index}
                   onClick={() => {
                     setSelectedCard(index);
@@ -615,7 +615,7 @@ const Deck = () => {
                 </button>
               ))}
               <button
-                className=" bg-c-light h-10  rounded-2xl flex justify-center items-center"
+                className=" bg-c-light  py-4  rounded-2xl flex justify-center items-center"
                 onClick={() => {
                   setSelectedCard(-1);
                   setLocalAnswer('');
@@ -624,7 +624,8 @@ const Deck = () => {
               >
                 <img src="/plus-small.svg" alt="" />
               </button>
-            </div>*/}
+            </div>
+
             <div className="basis-[40%] flex justify-between flex-col items-center">
               {selectedCard !== -1 ? (
                 <>
