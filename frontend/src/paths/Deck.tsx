@@ -534,7 +534,7 @@ const Deck = () => {
         </div>
       )}
       {deck && !settingsOpen && (
-        <div className="w-[80%] h-[80%] mx-auto my-10  flex flex-col gap-8 ">
+        <div className="w-[80%] flex-1  flex flex-col justify-between gap-8 mx-auto  my-10">
           <div className="flex justify-between items-center ">
             <div className=" flex-1">
               <input
@@ -582,7 +582,7 @@ const Deck = () => {
             </div>
           </div>
           <div className="flex flex-1 justify-between ">
-            <div className="basis-[55%]  flex flex-col gap-2 overflow-y-auto">
+            {/*<div className="basis-[55%] h-full flex flex-col gap-2 overflow-y-auto">
               {cards.map((card, index) => (
                 <button
                   className="group flex relative  bg-c-light p-4 rounded-2xl p-small overflow-hidden"
@@ -624,7 +624,7 @@ const Deck = () => {
               >
                 <img src="/plus-small.svg" alt="" />
               </button>
-            </div>
+            </div>*/}
             <div className="basis-[40%] flex justify-between flex-col items-center">
               {selectedCard !== -1 ? (
                 <>
