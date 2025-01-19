@@ -555,29 +555,34 @@ const Deck = () => {
             </div>
             <div className="flex gap-6">
               <button
-                className="p-body flex items-center gap-2 px-4 py-2 bg-c-green rounded-2xl"
+                className="p-body flex items-center gap-2 px-4 max-md:px-2 py-2 bg-c-green rounded-2xl"
                 onClick={() => {
                   setIsSaving(true);
                 }}
               >
-                Save
+                <img className="min-w-4 aspect-square" src="/save.svg" alt="" />
+                <p className="p-body max-md:hidden">Save</p>
               </button>
               <button
-                className="p-body flex items-center gap-2 px-4 py-2 bg-c-light rounded-2xl"
+                className="flex items-center gap-2 px-4 max-md:px-2 py-2 bg-c-light rounded-2xl"
                 onClick={() => {
                   setSettingsOpen(true);
                 }}
               >
-                <img src="/sett.svg" alt="" />
-                Settings
+                <img className="min-w-4 aspect-square" src="/sett.svg" alt="" />
+                <p className="p-body max-md:hidden">Settings</p>
               </button>
 
               <Link
-                className="p-body flex items-center gap-2 px-4 py-2 bg-c-primary rounded-2xl text-c-dark"
+                className="flex items-center gap-2 px-4 max-md:px-2 py-2 bg-c-primary rounded-2xl "
                 to={`/decks/${deckId}/play`}
               >
-                <img src="/play-big.svg" alt="" />
-                Play
+                <img
+                  className="min-w-4 aspect-square"
+                  src="/play-big.svg"
+                  alt=""
+                />
+                <p className="p-body text-c-dark max-md:hidden">Play</p>
               </Link>
             </div>
           </div>
