@@ -1,21 +1,16 @@
 import { Link, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import useDeck from '../hooks/useDeck';
+import useDeck, { contentToString } from '../hooks/useDeck';
 import { useEffect, useState } from 'react';
 import useAxiosPrivate from '../hooks/userAxiosPrivate';
 import ErrorPopup from '../components/ErrorPopup';
 import { DeckType } from '../types';
 
-type Flashcard = {
-  question: string;
-  answer: string;
-};
-
 const Deck = () => {
   const deckId = useParams().deckId;
-  const { deck, setDeck } = useDeck();
+  const { deck, setDeck, cards, setCards } = useDeck(deckId!);
   const axiosPrivateInstance = useAxiosPrivate();
-  const [cards, setCards] = useState<Flashcard[]>([]);
+
   const [selectedCard, setSelectedCard] = useState(-1);
   const [localQuestion, setLocalQuestion] = useState('');
   const [localAnswer, setLocalAnswer] = useState('');
@@ -34,45 +29,6 @@ const Deck = () => {
     'c-pink': ['#FD4798', '#B4326B'],
   };
 
-  const contentToObjects = (encryptedString: string): Flashcard[] => {
-    const result: Flashcard[] = [];
-
-    let current = 0;
-    let i = 0;
-    while (i < encryptedString.length) {
-      let j = i;
-      while (encryptedString[j] !== '@') {
-        j++;
-      }
-      let length = parseInt(encryptedString.slice(i, j), 10);
-
-      if (current % 2 === 0) {
-        result.push({ question: '', answer: '' });
-        result[Math.floor(current / 2)].question = encryptedString.slice(
-          j + 1,
-          j + 1 + length
-        );
-      } else if (current % 2 === 1) {
-        result[Math.floor(current / 2)].answer = encryptedString.slice(
-          j + 1,
-          j + 1 + length
-        );
-      }
-
-      i = j + 1 + length;
-      current++;
-    }
-
-    return result;
-  };
-  const contentToString = (): string => {
-    let result = ``;
-    for (let i = 0; i < cards.length; i++) {
-      result += `${cards[i].question.length}@${cards[i].question}`;
-      result += `${cards[i].answer.length}@${cards[i].answer}`;
-    }
-    return result;
-  };
   const validCard = () => {
     if (localAnswer === '') {
       setErrorMsg('Answer is required.');
@@ -102,23 +58,9 @@ const Deck = () => {
     return true;
   };
 
-  const getDeck = async () => {
-    try {
-      const response = await axiosPrivateInstance.get(`/flashcards/${deckId}`);
-      setDeck(response.data.deck[0]);
-      setCards(contentToObjects(response.data.deck[0].content));
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    getDeck();
-  }, []);
-
   useEffect(() => {
     if (cardChange) {
-      const content = contentToString();
+      const content = contentToString(cards);
 
       setDeck({ ...deck, content } as DeckType);
       setCardChange(false);
@@ -586,7 +528,7 @@ const Deck = () => {
               </Link>
             </div>
           </div>
-          <div className="flex justify-between ">
+          <div className="flex justify-between">
             <div className="basis-[55%] max-h-[50vh] flex flex-col gap-2 overflow-y-auto pr-2">
               {cards.map((card, index) => (
                 <button
@@ -705,7 +647,7 @@ const Deck = () => {
               )}
             </div>
           </div>
-          <div className="flex justify-between ">
+          <div className="flex justify-between">
             <div className="basis-[30%] h-full bg-c-light rounded-2xl p-4 flex flex-col gap-2">
               <p>Deck Stats</p>
               <hr />
