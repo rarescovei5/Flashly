@@ -10,6 +10,7 @@ import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 
 //Connect to the database
+
 const mysqlConnection = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,

@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { UserInfo } from '../types';
 
-const baseURL = 'http://localhost:3000/api';
+const baseURL = import.meta.env.DEV
+  ? 'http://localhost:3000/api'
+  : 'https://flashly.onrender.com';
 const registerURL = '/users/register';
 const loginURL = '/users/login';
 const logoutURL = '/users/logout';

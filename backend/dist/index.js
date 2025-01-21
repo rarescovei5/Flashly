@@ -225,66 +225,93 @@ const updateDeck = (req, res) => {
     const deck_id = parseInt(req.params.id);
     const name = req.body.name;
     const settings = req.body.settings;
-    const updatedFlashcards = req.body.flashcards;
+    const updatedFlashcards = req.body.flashcards; // Expect an array of updated flashcards
     const values = [name, JSON.stringify(settings), deck_id];
-    mysqlConnection.query(q, values, (err, data) => {
+    // Update deck details
+    mysqlConnection.query(q, values, (err, result) => {
         if (err) {
             return res
                 .status(500)
                 .send({ error: 'Error on server side', details: err });
         }
-        const okPacket = data;
-        if (okPacket.affectedRows === 0) {
+        const okResult = result;
+        if (okResult.affectedRows === 0) {
             return res.status(404).send({ error: 'Deck not found' });
         }
-        const existingFlashcardIds = updatedFlashcards.map((fc) => fc.id);
-        // Step 1: Delete flashcards not present in the updated flashcards
-        const deleteQuery = `
+        // Handle flashcard updates and deletions
+        if (Array.isArray(updatedFlashcards)) {
+            const existingFlashcardIds = updatedFlashcards.map((fc) => fc.id);
+            console.log('Existing Flashcard IDs:', existingFlashcardIds);
+            // Step 1: Delete flashcards not present in the updated flashcards
+            const deleteQuery = `
         DELETE FROM flashcards 
         WHERE deck_id = ? AND id NOT IN (?)`;
-        mysqlConnection.query(deleteQuery, [deck_id, existingFlashcardIds], (deleteErr) => {
-            if (deleteErr) {
-                return res.status(500).send({
-                    error: 'Error deleting old flashcards',
-                    details: deleteErr,
-                });
-            }
-            // Step 2: Update or insert flashcards
-            const flashcardQueries = updatedFlashcards.map((flashcard) => {
-                return new Promise((resolve, reject) => {
-                    const flashcardQuery = `
-                INSERT INTO flashcards (id, deck_id, content)
+            mysqlConnection.query(deleteQuery, [deck_id, existingFlashcardIds.length ? existingFlashcardIds : [-1]], // Prevent invalid SQL when no flashcards exist
+            (deleteErr) => {
+                if (deleteErr) {
+                    return res.status(500).send({
+                        error: 'Error deleting old flashcards',
+                        details: deleteErr,
+                    });
+                }
+                // Step 2: Update or insert flashcards
+                const flashcardQueries = updatedFlashcards.map((flashcard) => {
+                    return new Promise((resolve, reject) => {
+                        const flashcardQuery = `
+                INSERT INTO flashcards (deck_id, id, question, answer, ease_factor, repetitions, interval_days, last_reviewed_at, next_review_at)
                 VALUES (?)
                 ON DUPLICATE KEY UPDATE
-                  content = VALUES(content);`;
-                    const flashcardValues = [flashcard.id, deck_id, flashcard.content];
-                    mysqlConnection.query(flashcardQuery, flashcardValues, (err) => {
-                        if (err)
-                            reject(err);
-                        else
-                            resolve(null);
+                  question = VALUES(question),
+                  answer = VALUES(answer),
+                  ease_factor = VALUES(ease_factor),
+                  repetitions = VALUES(repetitions),
+                  interval_days = VALUES(interval_days),
+                  last_reviewed_at = VALUES(last_reviewed_at),
+                  next_review_at = VALUES(next_review_at)`;
+                        const flashcardValues = [
+                            deck_id,
+                            flashcard.id,
+                            flashcard.question,
+                            flashcard.answer,
+                            flashcard.ease_factor || 2.5, // Default ease factor
+                            flashcard.repetitions || 0,
+                            flashcard.interval_days || 0,
+                            flashcard.last_reviewed_at || null,
+                            flashcard.next_review_at || null,
+                        ];
+                        mysqlConnection.query(flashcardQuery, [flashcardValues], (err) => {
+                            if (err)
+                                reject(err);
+                            else
+                                resolve(null);
+                        });
+                    });
+                });
+                // Execute all flashcard queries
+                Promise.all(flashcardQueries)
+                    .then(() => {
+                    return res.status(200).send({ error: 'No Error' });
+                })
+                    .catch((flashcardErr) => {
+                    return res.status(500).send({
+                        error: 'Error updating flashcards',
+                        details: flashcardErr,
                     });
                 });
             });
-            // Execute all flashcard queries
-            Promise.all(flashcardQueries)
-                .then(() => {
-                return res.status(200).send({ error: 'No Error' });
-            })
-                .catch((flashcardErr) => {
-                return res.status(500).send({
-                    error: 'Error updating flashcards',
-                    details: flashcardErr,
-                });
-            });
-        });
+        }
+        else {
+            // If no flashcards were provided, just update the deck
+            return res.status(200).send({ error: 'No Error' });
+        }
     });
 };
 //Helper Functions
 const createInitialFlashcard = (deck_id) => {
-    const q = 'INSERT INTO flashcards (deck_id, content) VALUES (?)';
-    const content = '8@Question6@Answer';
-    const values = [deck_id, content];
+    const q = 'INSERT INTO flashcards (deck_id, id, question, answer) VALUES (?)';
+    const question = 'Question';
+    const answer = 'Answer';
+    const values = [deck_id, 1, question, answer];
     mysqlConnection.query(q, [values], (err, data) => {
         if (err) {
             console.error('Error adding initial flashcard:', err);
