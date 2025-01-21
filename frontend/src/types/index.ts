@@ -37,10 +37,7 @@ export type DeckType = {
   id: number;
   user_id: number;
   name: string;
-  content: string;
   settings: SettingsType;
-  upvotes: number;
-  downvotes: number;
   created_at: string;
   updated_at: string;
 };

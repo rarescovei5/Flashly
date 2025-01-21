@@ -3,8 +3,14 @@ import { DeckType } from '../types';
 import useAxiosPrivate from './userAxiosPrivate';
 
 type Flashcard = {
-  question: string;
-  answer: string;
+  deck_id: number;
+  id: number;
+  content: string;
+  ease_factor: number;
+  repetitions: number;
+  interval_days: number;
+  last_reviewed_at: null;
+  next_review_at: null;
 };
 
 export const contentToObjects = (encryptedString: string): Flashcard[] => {
@@ -54,9 +60,9 @@ const useDeck = (deckId: string) => {
 
   const getDeck = async () => {
     try {
-      const response = await axiosPrivateInstance.get(`/flashcards/${deckId}`);
+      const response = await axiosPrivateInstance.get(`/decks/${deckId}`);
       setDeck(response.data.deck[0]);
-      setCards(contentToObjects(response.data.deck[0].content));
+      setCards(contentToObjects(response.data.deck[0].flashcards));
     } catch (error) {
       console.log(error);
     }

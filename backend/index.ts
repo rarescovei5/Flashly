@@ -9,12 +9,15 @@ import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 
+//Connect to the database
 const mysqlConnection = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
 });
+
+//User related querys
 const registerUser = (req: express.Request, res: express.Response) => {
   const q = `INSERT INTO Users (username, email, password_hash)
 VALUES (?);`;
@@ -142,52 +145,50 @@ const logoutUser = (req: express.Request, res: express.Response) => {
     res.status(200).send({ error: 'No Error' });
   });
 };
-const createFlashCard = (req: express.Request, res: express.Response) => {
-  //get the number of how many decks a user has
-  const q1 = 'SELECT * FROM decks WHERE user_id=?';
+
+//Flashcard related querys
+const createDeck = (req: express.Request, res: express.Response) => {
+  const q = 'INSERT INTO decks (user_id, settings) VALUES (?)';
+
   const user_id = req.body.user_id;
-
-  mysqlConnection.query(q1, [user_id], (err, data) => {
-    if (err) return res.status(500).send({ error: err });
-
-    const nextDeckId = (data as any).length + 1;
-
-    if (nextDeckId > 10)
-      return res.status(500).send({ error: 'You can only have 10 decks' });
-
-    const name = `Deck ${nextDeckId}`;
-    const content = '8@Question6@Answer';
-    const defaultSettings = {
-      defaultSettings: {
-        deckColor: 'c-primary',
-        timer: {
-          maximumTime: 60,
-          showTimer: false,
-          calculateTime: false,
-        },
-        displayOrder: 'Display cards in increasing order',
-        dailyLimits: {
-          newCards: 20,
-          maximumReviews: 999,
-        },
+  const defaultSettings = JSON.stringify({
+    defaultSettings: {
+      deckColor: 'c-primary',
+      timer: {
+        maximumTime: 60,
+        showTimer: false,
+        calculateTime: false,
       },
-      dangerSettings: {
-        public: false,
+      displayOrder: 'Display cards in increasing order',
+      dailyLimits: {
+        newCards: 20,
+        maximumReviews: 999,
       },
-    };
+    },
+    dangerSettings: {
+      public: false,
+    },
+  });
+  const values = [user_id, defaultSettings];
 
-    const q2 = `INSERT INTO decks (user_id, name, content,settings)
-  VALUES (?);`;
-    const values = [user_id, name, content, JSON.stringify(defaultSettings)];
+  mysqlConnection.query(q, [values], (err, data) => {
+    if (err) {
+      return res
+        .status(500)
+        .send({ error: 'Error on server side', details: err });
+    }
 
-    mysqlConnection.query(q2, [values], (err, data) => {
-      if (err) return res.status(500).send({ error: err });
+    const deck_id = (data as any).insertId; // Get the newly inserted deck_id
+    console.log('New deck created with ID:', deck_id);
 
-      return res.status(200).send({ error: 'No Error' });
-    });
+    // Call createInitialFlashcard with the user_id and deck_id
+    createInitialFlashcard(deck_id);
+
+    // Respond with success and the new deck ID
+    res.status(201).send({ success: true, deck_id });
   });
 };
-const getUsersFlashcards = (req: express.Request, res: express.Response) => {
+const getUsersDecks = (req: express.Request, res: express.Response) => {
   const q = 'SELECT * FROM decks WHERE user_id=?';
 
   mysqlConnection.query(q, [req.body.user_id], (err, data) => {
@@ -196,36 +197,156 @@ const getUsersFlashcards = (req: express.Request, res: express.Response) => {
     return res.status(200).send({ decks: data, error: 'No Error' });
   });
 };
-const getUsersFlashcard = (req: express.Request, res: express.Response) => {
-  const q = 'SELECT * FROM decks WHERE id=?';
-  const id = req.params.id;
+const getUsersDeck = async (req: express.Request, res: express.Response) => {
+  const q = 'SELECT * FROM decks WHERE id = ?';
+  const deck_id = parseInt(req.params.id!);
 
-  const values = [id];
-  mysqlConnection.query(q, values, (err, data) => {
-    if (err) return res.send({ error: err });
+  const values = [deck_id];
 
-    if (!data) return res.status(404).send({ error: 'No flashcard found' });
-    return res.status(200).send({ deck: data, error: 'No Error' });
+  mysqlConnection.query(q, values, async (err, data) => {
+    if (err) {
+      return res
+        .status(500)
+        .send({ error: 'Error on server side', details: err });
+    }
+
+    const deckData = data as any;
+    if (deckData.length === 0) {
+      return res.status(404).send({ error: 'Deck not found' });
+    }
+
+    const deck = deckData[0];
+
+    try {
+      // Fetch the flashcards associated with the deck
+      const flashcards = await getFlashcardsFromDeck(deck_id);
+
+      return res.status(200).send({
+        deck: { ...deck, flashcards },
+        error: 'No Error',
+      });
+    } catch (flashcardsErr) {
+      return res.status(500).send({
+        error: 'Error fetching flashcards',
+        details: flashcardsErr,
+      });
+    }
   });
 };
-const updateFlashcard = (req: express.Request, res: express.Response) => {
-  const q =
-    'UPDATE decks SET name = ?, content = ?, settings = ?, updated_at = NOW() WHERE id = ?';
+const updateDeck = (req: express.Request, res: express.Response) => {
+  const q = `
+    UPDATE decks 
+    SET name = ?, settings = ?, updated_at = NOW() 
+    WHERE id = ?`;
 
-  const id = req.params.id;
+  const deck_id = parseInt(req.params.id!);
   const name = req.body.name;
-  const content = req.body.content;
   const settings = req.body.settings;
+  const updatedFlashcards = req.body.flashcards;
 
-  const values = [name, content, JSON.stringify(settings), id];
+  const values = [name, JSON.stringify(settings), deck_id];
+
   mysqlConnection.query(q, values, (err, data) => {
-    if (err) return res.send({ error: err });
-    if (!data) return res.status(404).send({ error: 'No flashcard found' });
+    if (err) {
+      return res
+        .status(500)
+        .send({ error: 'Error on server side', details: err });
+    }
 
-    return res.status(200).send({ error: 'No Error' });
+    const okPacket = data as mysql.OkPacketParams;
+    if (okPacket.affectedRows === 0) {
+      return res.status(404).send({ error: 'Deck not found' });
+    }
+
+    const existingFlashcardIds = updatedFlashcards.map((fc: any) => fc.id);
+
+    // Step 1: Delete flashcards not present in the updated flashcards
+    const deleteQuery = `
+        DELETE FROM flashcards 
+        WHERE deck_id = ? AND id NOT IN (?)`;
+    mysqlConnection.query(
+      deleteQuery,
+      [deck_id, existingFlashcardIds],
+      (deleteErr) => {
+        if (deleteErr) {
+          return res.status(500).send({
+            error: 'Error deleting old flashcards',
+            details: deleteErr,
+          });
+        }
+
+        // Step 2: Update or insert flashcards
+        const flashcardQueries = updatedFlashcards.map((flashcard: any) => {
+          return new Promise((resolve, reject) => {
+            const flashcardQuery = `
+                INSERT INTO flashcards (id, deck_id, question, answer)
+                VALUES (?)
+                ON DUPLICATE KEY UPDATE
+                  question = VALUES(question),
+                  answer = VALUES(answer);`;
+
+            const flashcardValues = [
+              flashcard.id,
+              deck_id,
+              flashcard.question,
+              flashcard.answer,
+            ];
+
+            mysqlConnection.query(flashcardQuery, flashcardValues, (err) => {
+              if (err) reject(err);
+              else resolve(null);
+            });
+          });
+        });
+
+        // Execute all flashcard queries
+        Promise.all(flashcardQueries)
+          .then(() => {
+            return res.status(200).send({ error: 'No Error' });
+          })
+          .catch((flashcardErr) => {
+            return res.status(500).send({
+              error: 'Error updating flashcards',
+              details: flashcardErr,
+            });
+          });
+      }
+    );
   });
 };
 
+//Helper Functions
+const createInitialFlashcard = (deck_id: number) => {
+  const q = 'INSERT INTO flashcards (deck_id, question, answer) VALUES (?)';
+
+  const question = 'Question';
+  const answer = 'Answer';
+
+  const values = [deck_id, question, answer];
+  mysqlConnection.query(q, [values], (err, data) => {
+    if (err) {
+      console.error('Error adding initial flashcard:', err);
+    } else {
+      console.log('Initial flashcard created for deck:', deck_id);
+    }
+  });
+};
+const getFlashcardsFromDeck = (deck_id: number): Promise<any[]> => {
+  return new Promise((resolve, reject) => {
+    const q = 'SELECT * FROM flashcards WHERE deck_id = ?';
+
+    const values = [deck_id];
+    mysqlConnection.query(q, values, (err, data: any[]) => {
+      if (err) {
+        reject(err); // Handle error
+      } else {
+        resolve(data); // Ensure results are treated as an array
+      }
+    });
+  });
+};
+
+// User / Verification related querys
 const verifyJWT = (
   req: express.Request,
   res: express.Response,
@@ -321,13 +442,19 @@ app.route('/api/users/register').post(registerUser);
 app.route('/api/users/login').post(loginUser);
 app.route('/api/users/logout').post(logoutUser);
 app
-  .route('/api/flashcards')
-  .post(verifyJWT, createFlashCard)
-  .get(verifyJWT, getUsersFlashcards);
+  .route('/api/decks')
+  .get(verifyJWT, getUsersDecks)
+  .post(verifyJWT, createDeck);
 app
-  .route('/api/flashcards/:id')
-  .get(verifyJWT, getUsersFlashcard)
-  .put(verifyJWT, updateFlashcard);
+  .route('/api/decks/:id')
+  .get(verifyJWT, getUsersDeck)
+  .put(verifyJWT, updateDeck);
+
+// app
+//   .route('/api/flashcardprogress')
+//   .get(verifyJWT, getFlashcardProgress)
+//   .post(verifyJWT, updateFlashcardProgress)
+//   .put(verifyJWT, updateFlashcardProgress);
 //Server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

@@ -1,16 +1,14 @@
 import { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import useDecks from '../hooks/useDecks';
-import useAxiosPrivate from '../hooks/userAxiosPrivate';
 import { Link } from 'react-router-dom';
 import Cardstack from '../components/Cardstack';
 import ErrorPopup from '../components/ErrorPopup';
 
 const Decks = () => {
-  const { decks, setDecks } = useDecks();
+  const { decks, createFlashcard } = useDecks();
   const [errorMsg, setErrorMsg] = useState('');
   const [creating, setCreating] = useState<boolean>(false);
-  const axiosPrivateInstance = useAxiosPrivate();
 
   const gridStyles = {
     display: 'grid',
@@ -20,32 +18,6 @@ const Decks = () => {
     gridTemplateRows: 'max-content',
     gap: '1rem',
   };
-
-  //Send request to server
-  const getDecks = async () => {
-    try {
-      const response = await axiosPrivateInstance.get('/flashcards');
-
-      setDecks(response.data.decks);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const createFlashcard = async () => {
-    try {
-      await axiosPrivateInstance.post('/flashcards');
-      getDecks();
-    } catch (err) {
-      setErrorMsg((err as any).response.data.error);
-      console.log(errorMsg);
-    }
-  };
-
-  //Use Effects
-  useEffect(() => {
-    getDecks();
-  }, []);
 
   useEffect(() => {
     if (!creating) {
@@ -58,8 +30,11 @@ const Decks = () => {
       return;
     }
 
-    const timeout = setTimeout(() => {
-      createFlashcard();
+    const timeout = setTimeout(async () => {
+      const result = await createFlashcard();
+      if (result) {
+        setErrorMsg(result.response.data.err);
+      }
       setCreating(false);
     }, 1000);
 
@@ -102,8 +77,8 @@ const Decks = () => {
                       </svg>
                     </div>
 
-                    {(deck.content.match(/@/g) || []).length > 1 ? (
-                      (deck.content.match(/@/g) || []).length > 2 ? (
+                    {(deck.name.match(/@/g) || []).length > 1 ? (
+                      (deck.name.match(/@/g) || []).length > 2 ? (
                         <Cardstack
                           length={3}
                           color={deck.settings.defaultSettings.deckColor}
