@@ -36,7 +36,7 @@ const Decks = () => {
         setErrorMsg(result.response.data.err);
       }
       setCreating(false);
-    }, 1000);
+    }, 100);
 
     return () => clearTimeout(timeout);
   }, [creating]);

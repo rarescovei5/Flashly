@@ -1,13 +1,13 @@
 import { Link, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import useDeck, { contentToString } from '../hooks/useDeck';
+import useDeck from '../hooks/useDeck';
 import { useEffect, useState } from 'react';
 import useAxiosPrivate from '../hooks/userAxiosPrivate';
 import ErrorPopup from '../components/ErrorPopup';
 import { DeckType } from '../types';
 
 const Deck = () => {
-  const deckId = useParams().deckId;
+  const deckId = parseInt(useParams().deckId!, 10);
   const { deck, setDeck, cards, setCards } = useDeck(deckId!);
   const axiosPrivateInstance = useAxiosPrivate();
 
@@ -16,7 +16,6 @@ const Deck = () => {
   const [localAnswer, setLocalAnswer] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [cardChange, setCardChange] = useState(false);
 
   //Settigns Variables
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -58,15 +57,7 @@ const Deck = () => {
     return true;
   };
 
-  useEffect(() => {
-    if (cardChange) {
-      const content = contentToString(cards);
-
-      setDeck({ ...deck, content } as DeckType);
-      setCardChange(false);
-    }
-  }, [cardChange]);
-
+  //Update The Cards Automatically
   useEffect(() => {
     if (selectedCard === -1) return;
 
@@ -76,20 +67,26 @@ const Deck = () => {
       updatedCards[selectedCard].question = localQuestion;
       updatedCards[selectedCard].answer = localAnswer;
       setCards(updatedCards);
-      setCardChange(true);
-    }, 500);
+    }, 100);
 
     return () => clearTimeout(timeout);
   }, [localQuestion, localAnswer]);
 
+  //Save the deck
   useEffect(() => {
     if (!isSaving || !validDeck()) return;
 
     const controller = new AbortController();
 
     const saveDeck = async () => {
+      const data = {
+        name: deck!.name,
+        settings: deck!.settings,
+        flashcards: cards,
+      };
+
       try {
-        await axiosPrivateInstance.put(`/flashcards/${deckId}`, deck, {
+        await axiosPrivateInstance.put(`/decks/${deckId}`, data, {
           signal: controller.signal,
         });
       } catch (error) {
@@ -497,7 +494,7 @@ const Deck = () => {
             </div>
             <div className="flex gap-6">
               <button
-                className="p-body flex items-center gap-2 px-4 max-md:px-2 py-2 bg-c-green rounded-2xl"
+                className="p-body flex items-center gap-2 px-4 max-md:px-2 py-2 bg-c-green rounded-2xl transition-[background] hover:bg-[#449832]"
                 onClick={() => {
                   setIsSaving(true);
                 }}
@@ -546,15 +543,11 @@ const Deck = () => {
                     className="group-hover:block hidden absolute right-4 top-1/2 -translate-y-1/2 hover:bg-c-dark px-2 py-2 rounded-full"
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (cards.length === 1) {
-                        setErrorMsg('Deck must have at least 1 card');
-                        return;
-                      }
+
                       if (index === selectedCard) setSelectedCard(-1);
                       setCards((prevCards) => {
                         return prevCards.filter((_, i) => i !== index);
                       });
-                      setCardChange(true);
                     }}
                   >
                     <img className=" w-2 h-2" src="/close.svg" alt="" />
@@ -635,10 +628,19 @@ const Deck = () => {
 
                       setCards((prev) => [
                         ...prev,
-                        { question: localQuestion, answer: localAnswer },
+                        {
+                          deck_id: deckId,
+                          id: cards.length + 1,
+                          question: localQuestion,
+                          answer: localAnswer,
+                          ease_factor: 2.5,
+                          repetitions: 0,
+                          interval_days: 0,
+                          last_reviewed_at: null,
+                          next_review_at: null,
+                        },
                       ]);
                       setSelectedCard(cards.length);
-                      setCardChange(true);
                     }}
                   >
                     Add Card
