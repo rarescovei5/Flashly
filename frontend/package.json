@@ -1,6 +1,6 @@
 {
-  "homepage": "http://rarescovei5.github.io/Flashly",
-  "name": "backend",
+  "name": "frontend",
+  "homepage": "https://rarescovei5.github.io/Flashly/",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@types/node": "^22.10.7",
