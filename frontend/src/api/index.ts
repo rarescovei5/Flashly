@@ -3,7 +3,7 @@ import { UserInfo } from '../types';
 
 const baseURL = import.meta.env.DEV
   ? 'http://localhost:3000/api'
-  : 'https://flashly.onrender.com';
+  : 'https://flashly.onrender.com/api';
 const registerURL = '/users/register';
 const loginURL = '/users/login';
 const logoutURL = '/users/logout';
