@@ -391,7 +391,18 @@ const handleRefreshToken = (req, res) => {
 };
 //Cors Options
 const corsOptions = {
-    origin: 'http://localhost:5173', // Explicitly allow your frontend origin
+    origin: (origin, callback) => {
+        const allowedOrigins = [
+            'https://flashly-chi.vercel.app',
+            'http://localhost:5174',
+        ];
+        if (allowedOrigins.includes(origin) || !origin) {
+            callback(null, true);
+        }
+        else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true, // Allow cookies and credentials
 };
 //Middleware

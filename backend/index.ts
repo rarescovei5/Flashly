@@ -448,12 +448,13 @@ const handleRefreshToken = (req: express.Request, res: express.Response) => {
 };
 
 //Cors Options
+const allowedOrigins = [
+  'http://localhost:5174',
+  'https://flashly-chi.vercel.app',
+];
+
 const corsOptions = {
   origin: (origin: any, callback: any) => {
-    const allowedOrigins = [
-      'https://flashly-chi.vercel.app',
-      'http://localhost:5173',
-    ];
     if (allowedOrigins.includes(origin) || !origin) {
       callback(null, true);
     } else {
