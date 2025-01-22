@@ -67,7 +67,7 @@ VALUES (?);`;
           return res.status(500).send({ error: err });
         }
       } else {
-        return res.status(500).send({ error: 'idk what happened' });
+        return res.status(500).send({ error: err });
       }
     }
 
