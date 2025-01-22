@@ -8,24 +8,25 @@ import PlayDeck from './paths/PlayDeck';
 import Discover from './paths/Discover';
 import RequireAuth from './auth/RequireAuth';
 import PersistAuth from './auth/PersistAuth';
+import NotFound from './paths/NotFound';
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/sign-in" element={<Signin />} />
-        <Route path="/sign-up" element={<Signup />} />
+        <Route path="/Flashly/sign-in" element={<Signin />} />
+        <Route path="/Flashly/sign-up" element={<Signup />} />
 
         <Route element={<PersistAuth />}>
-          <Route path="/" element={<Home />} />
+          <Route path="/Flashly/" element={<Home />} />
           <Route element={<RequireAuth />}>
-            <Route path="/decks" element={<Decks />} />
-            <Route path="/decks/:deckId" element={<Deck />} />
-            <Route path="/decks/:deckId/play" element={<PlayDeck />} />
-            <Route path="/decks/discover" element={<Discover />} />
+            <Route path="/Flashly/decks" element={<Decks />} />
+            <Route path="/Flashly/decks/:deckId" element={<Deck />} />
+            <Route path="/Flashly/decks/:deckId/play" element={<PlayDeck />} />
+            <Route path="/Flashly/decks/discover" element={<Discover />} />
           </Route>
         </Route>
 
-        <Route path="/*" element={<h1>404</h1>}></Route>
+        <Route path="/Flashly/*" element={<NotFound />}></Route>
       </Routes>
     </BrowserRouter>
   );
