@@ -67,6 +67,7 @@ VALUES (?);`;
           return res.status(500).send({ error: err });
         }
       } else {
+        console.log(err);
         return res.status(500).send({ error: err });
       }
     }

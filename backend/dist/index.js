@@ -74,7 +74,8 @@ VALUES (?);`;
                 }
             }
             else {
-                return res.status(500).send({ error: 'idk what happened' });
+                console.log(err);
+                return res.status(500).send({ error: err });
             }
         }
         return res.status(200).send({ error: 'No Error' });
