@@ -13,20 +13,20 @@ const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/Flashly/sign-in" element={<Signin />} />
-        <Route path="/Flashly/sign-up" element={<Signup />} />
+        <Route path="/sign-in" element={<Signin />} />
+        <Route path="/sign-up" element={<Signup />} />
 
         <Route element={<PersistAuth />}>
-          <Route path="/Flashly/" element={<Home />} />
+          <Route path="/" element={<Home />} />
           <Route element={<RequireAuth />}>
-            <Route path="/Flashly/decks" element={<Decks />} />
-            <Route path="/Flashly/decks/:deckId" element={<Deck />} />
-            <Route path="/Flashly/decks/:deckId/play" element={<PlayDeck />} />
-            <Route path="/Flashly/decks/discover" element={<Discover />} />
+            <Route path="/decks" element={<Decks />} />
+            <Route path="/decks/:deckId" element={<Deck />} />
+            <Route path="/decks/:deckId/play" element={<PlayDeck />} />
+            <Route path="/decks/discover" element={<Discover />} />
           </Route>
         </Route>
 
-        <Route path="/Flashly/*" element={<NotFound />}></Route>
+        <Route path="/*" element={<NotFound />}></Route>
       </Routes>
     </BrowserRouter>
   );
