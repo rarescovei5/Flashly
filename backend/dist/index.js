@@ -24,7 +24,7 @@ const mysqlConnection = mysql.createConnection({
 });
 //User related querys
 const registerUser = (req, res) => {
-    const q = `INSERT INTO Users (username, email, password_hash)
+    const q = `INSERT INTO users (username, email, password_hash)
 VALUES (?);`;
     const password = req.body.password;
     if (password.length < 8) {
@@ -82,7 +82,7 @@ VALUES (?);`;
     });
 };
 const loginUser = (req, res) => {
-    const q = 'SELECT * FROM Users WHERE email=? AND password_hash=?';
+    const q = 'SELECT * FROM users WHERE email=? AND password_hash=?';
     const values = [
         req.body.email,
         crypto.createHash('sha256').update(req.body.password).digest('hex'),
@@ -122,7 +122,7 @@ const loginUser = (req, res) => {
 };
 const logoutUser = (req, res) => {
     //Remove refresh token from the user in the database
-    const q = 'UPDATE Users SET refresh_token=NULL WHERE refresh_token=?';
+    const q = 'UPDATE users SET refresh_token=NULL WHERE refresh_token=?';
     const cookies = req.cookies;
     if (!(cookies === null || cookies === void 0 ? void 0 : cookies.jwt)) {
         res.status(204).send({ error: 'No content' });

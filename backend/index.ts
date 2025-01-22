@@ -20,7 +20,7 @@ const mysqlConnection = mysql.createConnection({
 
 //User related querys
 const registerUser = (req: express.Request, res: express.Response) => {
-  const q = `INSERT INTO Users (username, email, password_hash)
+  const q = `INSERT INTO users (username, email, password_hash)
 VALUES (?);`;
 
   const password = req.body.password;
@@ -76,7 +76,7 @@ VALUES (?);`;
   });
 };
 const loginUser = (req: express.Request, res: express.Response) => {
-  const q = 'SELECT * FROM Users WHERE email=? AND password_hash=?';
+  const q = 'SELECT * FROM users WHERE email=? AND password_hash=?';
 
   const values = [
     req.body.email,
@@ -127,7 +127,7 @@ const loginUser = (req: express.Request, res: express.Response) => {
 };
 const logoutUser = (req: express.Request, res: express.Response) => {
   //Remove refresh token from the user in the database
-  const q = 'UPDATE Users SET refresh_token=NULL WHERE refresh_token=?';
+  const q = 'UPDATE users SET refresh_token=NULL WHERE refresh_token=?';
 
   const cookies = req.cookies;
   if (!cookies?.jwt) {
