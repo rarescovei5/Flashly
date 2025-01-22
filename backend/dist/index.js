@@ -70,7 +70,7 @@ VALUES (?);`;
                     return res.status(500).send({ error: 'Username taken' });
                 }
                 else {
-                    return res.status(500).send({ error: 'idk what happened' });
+                    return res.status(500).send({ error: err });
                 }
             }
             else {
@@ -390,12 +390,12 @@ const handleRefreshToken = (req, res) => {
     });
 };
 //Cors Options
+const allowedOrigins = [
+    'http://localhost:5174',
+    'https://flashly-chi.vercel.app',
+];
 const corsOptions = {
     origin: (origin, callback) => {
-        const allowedOrigins = [
-            'https://flashly-chi.vercel.app',
-            'http://localhost:5174',
-        ];
         if (allowedOrigins.includes(origin) || !origin) {
             callback(null, true);
         }

@@ -64,7 +64,7 @@ VALUES (?);`;
         } else if (message == 'users.username_UNIQUE') {
           return res.status(500).send({ error: 'Username taken' });
         } else {
-          return res.status(500).send({ error: 'idk what happened' });
+          return res.status(500).send({ error: err });
         }
       } else {
         return res.status(500).send({ error: 'idk what happened' });
