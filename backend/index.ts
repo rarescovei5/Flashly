@@ -150,44 +150,49 @@ const logoutUser = (req: express.Request, res: express.Response) => {
 
 //Flashcard related querys
 const createDeck = (req: express.Request, res: express.Response) => {
-  const q = 'INSERT INTO decks (user_id, settings) VALUES (?)';
-
   const user_id = req.body.user_id;
-  const defaultSettings = JSON.stringify({
-    defaultSettings: {
-      deckColor: 'c-primary',
-      timer: {
-        maximumTime: 60,
-        showTimer: false,
-        calculateTime: false,
+  const q = 'SELECT * FROM decks WHERE user_id=?';
+  //Get the ammount of decks a user has
+  mysqlConnection.query(q, [user_id], (err, data) => {
+    const q = 'INSERT INTO decks (user_id, name, settings) VALUES (?)';
+    const defaultSettings = JSON.stringify({
+      defaultSettings: {
+        deckColor: 'c-primary',
+        timer: {
+          maximumTime: 60,
+          showTimer: false,
+          calculateTime: false,
+        },
+        displayOrder: 'Display cards in increasing order',
+        dailyLimits: {
+          newCards: 20,
+          maximumReviews: 999,
+        },
       },
-      displayOrder: 'Display cards in increasing order',
-      dailyLimits: {
-        newCards: 20,
-        maximumReviews: 999,
+      dangerSettings: {
+        public: false,
       },
-    },
-    dangerSettings: {
-      public: false,
-    },
-  });
-  const values = [user_id, defaultSettings];
+    });
 
-  mysqlConnection.query(q, [values], (err, data) => {
-    if (err) {
-      return res
-        .status(500)
-        .send({ error: 'Error on server side', details: err });
-    }
+    const name = `Deck ${(data as any).length + 1}`;
+    const values = [user_id, name, defaultSettings];
 
-    const deck_id = (data as any).insertId; // Get the newly inserted deck_id
-    console.log('New deck created with ID:', deck_id);
+    mysqlConnection.query(q, [values], (err, data) => {
+      if (err) {
+        return res
+          .status(500)
+          .send({ error: 'Error on server side', details: err });
+      }
 
-    // Call createInitialFlashcard with the user_id and deck_id
-    createInitialFlashcard(deck_id);
+      const deck_id = (data as any).insertId; // Get the newly inserted deck_id
+      console.log('New deck created with ID:', deck_id);
 
-    // Respond with success and the new deck ID
-    res.status(201).send({ success: true, deck_id });
+      // Call createInitialFlashcard with the user_id and deck_id
+      createInitialFlashcard(deck_id);
+
+      // Respond with success and the new deck ID
+      res.status(201).send({ success: true, deck_id });
+    });
   });
 };
 const getUsersDecks = (req: express.Request, res: express.Response) => {
