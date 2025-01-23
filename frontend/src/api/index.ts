@@ -1,9 +1,7 @@
 import axios from 'axios';
 import { UserInfo } from '../types';
 
-const baseURL = import.meta.env.DEV
-  ? 'http://localhost:3000/api'
-  : 'https://flashly.onrender.com/api';
+const baseURL = import.meta.env.VITE_SERVER;
 const registerURL = '/users/register';
 const loginURL = '/users/login';
 const logoutURL = '/users/logout';
@@ -42,6 +40,7 @@ export const loginUser = async (user: { email: string; password: string }) => {
     });
     return response.data;
   } catch (error: any) {
+    if (error.code === 'ERR_NETWORK') return { error: 'Server error' };
     return error.response.data;
   }
 };

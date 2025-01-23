@@ -454,10 +454,7 @@ const handleRefreshToken = (req: express.Request, res: express.Response) => {
 };
 
 //Cors Options
-const allowedOrigins = [
-  'http://localhost:5174',
-  'https://flashly-chi.vercel.app',
-];
+const allowedOrigins = ['http://localhost:5173', process.env.FRONTEND_PATH];
 
 const corsOptions = {
   origin: (origin: any, callback: any) => {
