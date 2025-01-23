@@ -396,10 +396,7 @@ const handleRefreshToken = (req, res) => {
     });
 };
 //Cors Options
-const allowedOrigins = [
-    'http://localhost:5173',
-    'https://flashly-chi.vercel.app',
-];
+const allowedOrigins = ['http://localhost:5173', process.env.FRONTEND_PATH];
 const corsOptions = {
     origin: (origin, callback) => {
         if (allowedOrigins.includes(origin) || !origin) {
@@ -437,6 +434,7 @@ app
 //Server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
+    console.log(`[server]: Allowed origins ${JSON.stringify(allowedOrigins)}`);
     console.log(`[server]: Server is running at http://localhost:${port}`);
 });
 //# sourceMappingURL=index.js.map
