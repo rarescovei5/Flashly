@@ -458,6 +458,7 @@ const allowedOrigins = ['http://localhost:5173', process.env.FRONTEND_PATH];
 const corsOptions = {
   origin: (origin: any, callback: any) => {
     if (allowedOrigins.includes(origin) || !origin) {
+      console.error(`${origin}`);
       callback(null, true);
     } else {
       console.error(`Blocked by CORS: ${origin}`);
