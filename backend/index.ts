@@ -460,6 +460,7 @@ const corsOptions = {
     if (allowedOrigins.includes(origin) || !origin) {
       callback(null, true);
     } else {
+      console.error(`Blocked by CORS: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
