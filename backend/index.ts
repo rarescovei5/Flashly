@@ -455,7 +455,7 @@ const handleRefreshToken = (req: express.Request, res: express.Response) => {
 
 //Cors Options
 const allowedOrigins = ['http://localhost:5173', process.env.FRONTEND_PATH];
-
+console.log(allowedOrigins);
 const corsOptions = {
   origin: (origin: any, callback: any) => {
     if (allowedOrigins.includes(origin) || !origin) {
