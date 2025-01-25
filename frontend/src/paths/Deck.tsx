@@ -26,7 +26,7 @@ const Deck = () => {
   //Settigns Variables
   const [settingsOpen, setSettingsOpen] = useState(false);
   let colorMap: { [key: string]: string[] } = {
-    'c-light': ['#212121', '#070707'],
+    'c-light': ['#212121', '#1a1a1a'],
     'c-primary': ['#FBE87E', '#C7B666'],
     'c-blue': ['#1A87EC', '#0F4786'],
     'c-green': ['#71F65A', '#449832'],
@@ -85,14 +85,8 @@ const Deck = () => {
     const controller = new AbortController();
 
     const saveDeck = async () => {
-      const data = {
-        name: deck!.name,
-        settings: deck!.settings,
-        flashcards: cards,
-      };
-
       try {
-        await axiosPrivateInstance.put(`/decks/${deckId}`, data, {
+        await axiosPrivateInstance.put(`/decks/${deckId}`, deck, {
           signal: controller.signal,
         });
       } catch (error) {
@@ -659,22 +653,22 @@ const Deck = () => {
             </div>
             <div className="basis-[65%] flex justify-between">
               <div
-                className="basis-[49%] text-c-dark rounded-2xl flex justify-center items-center"
+                className="basis-[49%] px-4  rounded-2xl flex justify-center items-center"
                 style={{
                   backgroundColor:
                     colorMap[deck.settings.defaultSettings.deckColor][0],
                 }}
               >
-                {localQuestion}
+                <p className="text-c-dark p-body">{localQuestion}</p>
               </div>
               <div
-                className="basis-[49%] text-c-dark rounded-2xl flex justify-center items-center"
+                className="basis-[49%] px-4   rounded-2xl flex justify-center items-center"
                 style={{
                   backgroundColor:
                     colorMap[deck.settings.defaultSettings.deckColor][1],
                 }}
               >
-                {localAnswer}
+                <p className="text-c-dark p-body">{localAnswer}</p>
               </div>
             </div>
           </div>

@@ -240,6 +240,11 @@ const getUsersDeck = async (req: express.Request, res: express.Response) => {
       // Fetch the flashcards associated with the deck
       const flashcards = await getFlashcardsFromDeck(deck_id);
 
+      flashcards.forEach((card: any) => {
+        card.next_review_at = formatTimestamp(card.next_review_at);
+        card.last_reviewed_at = formatTimestamp(card.last_reviewed_at);
+      });
+
       return res.status(200).send({
         deck: { ...deck, flashcards },
         error: 'No Error',
@@ -281,7 +286,6 @@ const updateDeck = (req: express.Request, res: express.Response) => {
     // Handle flashcard updates and deletions
     if (Array.isArray(updatedFlashcards)) {
       const existingFlashcardIds = updatedFlashcards.map((fc: any) => fc.id);
-      console.log('Existing Flashcard IDs:', existingFlashcardIds);
 
       // Step 1: Delete flashcards not present in the updated flashcards
       const deleteQuery = `
@@ -357,6 +361,9 @@ const updateDeck = (req: express.Request, res: express.Response) => {
 };
 
 //Helper Functions
+const formatTimestamp = (isoString: string) => {
+  return new Date(isoString).toISOString().slice(0, 19).replace('T', ' ');
+};
 const createInitialFlashcard = (deck_id: number) => {
   const q = 'INSERT INTO flashcards (deck_id, id, question, answer) VALUES (?)';
 

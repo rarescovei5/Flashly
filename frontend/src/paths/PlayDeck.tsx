@@ -150,23 +150,25 @@ const PlayDeck = () => {
           <div className="flex-1 flex flex-col gap-2">
             {!isRevealed ? (
               <div
-                className="text-c-dark flex-1  rounded-2xl flex justify-center h4 items-center"
+                className="flex-1 px-4 rounded-2xl flex justify-center items-center"
                 style={{
                   backgroundColor:
                     colorMap[deck?.settings.defaultSettings.deckColor][0],
                 }}
               >
-                {cards[currentCard].question}
+                <h4 className="h4 text-c-dark ">
+                  {cards[currentCard].question}
+                </h4>
               </div>
             ) : (
               <div
-                className="text-c-dark flex-1  rounded-2xl flex justify-center h4 items-center"
+                className="flex-1 px-4  rounded-2xl flex justify-center items-center"
                 style={{
                   backgroundColor:
                     colorMap[deck?.settings.defaultSettings.deckColor][1],
                 }}
               >
-                {cards[currentCard].answer}
+                <h4 className="h4 text-c-dark ">{cards[currentCard].answer}</h4>
               </div>
             )}
 

@@ -10,6 +10,7 @@ const useDeck = (deckId: number) => {
   const getDeck = async () => {
     try {
       const response = await axiosPrivateInstance.get(`/decks/${deckId}`);
+
       setDeck(response.data.deck);
       setCards(response.data.deck.flashcards);
     } catch (error) {
