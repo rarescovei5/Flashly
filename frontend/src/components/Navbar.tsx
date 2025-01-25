@@ -29,7 +29,7 @@ const Navbar = () => {
       </div>
       <div className="md:flex-1 flex justify-end max-md:ml-2">
         {auth?.accessToken ? (
-          <div className="inline-flex gap-4 items-center">
+          <div className="inline-flex max-md:gap-2 gap-4 items-center">
             <Link className="p-small" to={'/decks'}>
               Decks
             </Link>
@@ -62,7 +62,7 @@ const Navbar = () => {
             </div>
           </div>
         ) : (
-          <div className="inline-flex gap-4 ml-4">
+          <div className="inline-flex gap-4">
             <Link
               className="p-small bg-c-light max-md:px-2 px-4 py-2 rounded-2xl"
               to="/sign-in"
