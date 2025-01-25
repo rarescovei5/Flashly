@@ -50,6 +50,7 @@ const Decks = () => {
         xl={2}
         yt={2}
       />
+
       <Navbar />
 
       {decks.length > 0 ? (
@@ -59,7 +60,7 @@ const Decks = () => {
         >
           {decks.map((deck) => {
             return (
-              <div className="flex flex-col" key={`${deck.id}`}>
+              <div className="flex flex-col" key={deck.id}>
                 <div className="relative h-80">
                   <Link to={`/decks/${deck.id}`}>
                     <div className="absolute left-4 top-4 bg-c-dark px-2 py-2 rounded-full z-10">
@@ -77,8 +78,8 @@ const Decks = () => {
                       </svg>
                     </div>
 
-                    {(deck.name.match(/@/g) || []).length > 1 ? (
-                      (deck.name.match(/@/g) || []).length > 2 ? (
+                    {Math.random() * 3 > 1 ? (
+                      Math.random() * 3 > 2 ? (
                         <Cardstack
                           length={3}
                           color={deck.settings.defaultSettings.deckColor}
