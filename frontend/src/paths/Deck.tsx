@@ -6,6 +6,12 @@ import useAxiosPrivate from '../hooks/userAxiosPrivate';
 import ErrorPopup from '../components/ErrorPopup';
 import { DeckType } from '../types';
 
+/*
+TODO:
+  Hightlight the current card you are editing
+  Fix the hardcoded value in the overflow-y auto div so the cards are displayed right
+*/
+
 const Deck = () => {
   const deckId = parseInt(useParams().deckId!, 10);
   const { deck, setDeck, cards, setCards } = useDeck(deckId!);
@@ -558,8 +564,24 @@ const Deck = () => {
                 className=" bg-c-light  py-4  rounded-2xl flex justify-center items-center"
                 onClick={() => {
                   setSelectedCard(-1);
-                  setLocalAnswer('');
-                  setLocalQuestion('');
+                  setLocalAnswer('Answer');
+                  setLocalQuestion('Question');
+
+                  setCards((prev) => [
+                    ...prev,
+                    {
+                      deck_id: deckId,
+                      id: cards.length + 1,
+                      question: localQuestion,
+                      answer: localAnswer,
+                      ease_factor: 2.5,
+                      repetitions: 0,
+                      interval_days: 0,
+                      last_reviewed_at: null,
+                      next_review_at: null,
+                    },
+                  ]);
+                  setSelectedCard(cards.length);
                 }}
               >
                 <img src="/plus-small.svg" alt="" />
@@ -620,31 +642,6 @@ const Deck = () => {
                       ></textarea>
                     </div>
                   </div>
-
-                  <button
-                    className="mb-2 p-body px-4 py-2 bg-c-primary text-c-dark rounded-2xl"
-                    onClick={() => {
-                      if (!validCard()) return;
-
-                      setCards((prev) => [
-                        ...prev,
-                        {
-                          deck_id: deckId,
-                          id: cards.length + 1,
-                          question: localQuestion,
-                          answer: localAnswer,
-                          ease_factor: 2.5,
-                          repetitions: 0,
-                          interval_days: 0,
-                          last_reviewed_at: null,
-                          next_review_at: null,
-                        },
-                      ]);
-                      setSelectedCard(cards.length);
-                    }}
-                  >
-                    Add Card
-                  </button>
                 </>
               )}
             </div>

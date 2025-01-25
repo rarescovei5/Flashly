@@ -33,6 +33,18 @@ export type SettingsType = {
     public: boolean;
   };
 };
+export type Flashcard = {
+  deck_id: number;
+  id: number;
+  question: string;
+  answer: string;
+  ease_factor: number;
+  repetitions: number;
+  interval_days: number;
+  last_reviewed_at: string | null;
+  next_review_at: string | null;
+};
+
 export type DeckType = {
   id: number;
   user_id: number;
@@ -40,4 +52,5 @@ export type DeckType = {
   settings: SettingsType;
   created_at: string;
   updated_at: string;
+  flashcards: Flashcard[];
 };

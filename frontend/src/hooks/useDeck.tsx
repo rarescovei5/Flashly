@@ -1,18 +1,6 @@
 import { useEffect, useState } from 'react';
-import { DeckType } from '../types';
+import { DeckType, Flashcard } from '../types';
 import useAxiosPrivate from './userAxiosPrivate';
-
-type Flashcard = {
-  deck_id: number;
-  id: number;
-  question: string;
-  answer: string;
-  ease_factor: number;
-  repetitions: number;
-  interval_days: number;
-  last_reviewed_at: null;
-  next_review_at: null;
-};
 
 const useDeck = (deckId: number) => {
   const [deck, setDeck] = useState<DeckType>();
