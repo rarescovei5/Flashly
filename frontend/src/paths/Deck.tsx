@@ -15,11 +15,13 @@ TODO:
 const Deck = () => {
   const deckId = parseInt(useParams().deckId!, 10);
   const { deck, setDeck, cards, setCards } = useDeck(deckId!);
+
   const axiosPrivateInstance = useAxiosPrivate();
 
   const [selectedCard, setSelectedCard] = useState(-1);
   const [localQuestion, setLocalQuestion] = useState('');
   const [localAnswer, setLocalAnswer] = useState('');
+
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -60,6 +62,11 @@ const Deck = () => {
       setErrorMsg(`Settings: Maximum time is required.`);
       return false;
     }
+
+    if (cards.length === 0) {
+      setErrorMsg('Deck must have at least one card.');
+      return false;
+    }
     return true;
   };
 
@@ -85,8 +92,15 @@ const Deck = () => {
     const controller = new AbortController();
 
     const saveDeck = async () => {
+      console.log(cards);
+
+      const data = {
+        name: deck!.name,
+        settings: deck!.settings,
+        flashcards: cards,
+      };
       try {
-        await axiosPrivateInstance.put(`/decks/${deckId}`, deck, {
+        await axiosPrivateInstance.put(`/decks/${deckId}`, data, {
           signal: controller.signal,
         });
       } catch (error) {
@@ -496,6 +510,17 @@ const Deck = () => {
               <button
                 className="p-body flex items-center gap-2 px-4 max-md:px-2 py-2 bg-c-green rounded-2xl transition-[background] hover:bg-[#449832]"
                 onClick={() => {
+                  /* This fixed the following issue: Cards Example: [{id:1},{id:2}]
+                  If you delete the first one you get: [{id:2}]
+                  If you add another card after you get: [{id:2},{id:2}]
+                  */
+                  for (let i = 0; i < cards.length; i++) {
+                    setCards((prevCards) => {
+                      const newCards = [...prevCards];
+                      newCards[i].id = i;
+                      return newCards;
+                    });
+                  }
                   setIsSaving(true);
                 }}
               >
@@ -543,6 +568,10 @@ const Deck = () => {
                     className="group-hover:block hidden absolute right-4 top-1/2 -translate-y-1/2 hover:bg-c-dark px-2 py-2 rounded-full"
                     onClick={(e) => {
                       e.stopPropagation();
+                      if (cards.length === 1) {
+                        setErrorMsg('You cannot delete the last card');
+                        return;
+                      }
 
                       if (index === selectedCard) setSelectedCard(-1);
                       setCards((prevCards) => {

@@ -241,6 +241,7 @@ const getUsersDeck = async (req: express.Request, res: express.Response) => {
       const flashcards = await getFlashcardsFromDeck(deck_id);
 
       flashcards.forEach((card: any) => {
+        if (!card.next_review_at) return;
         card.next_review_at = formatTimestamp(card.next_review_at);
         card.last_reviewed_at = formatTimestamp(card.last_reviewed_at);
       });
