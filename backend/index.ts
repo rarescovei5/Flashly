@@ -1,5 +1,10 @@
-import dotenv from 'dotenv';
-dotenv.config({ path: '../.env' });
+import { config } from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+
+// Get the current directory name using import.meta.url
+const __dirname = dirname(fileURLToPath(import.meta.url));
+config({ path: resolve(__dirname, '../.env') });
 
 import crypto from 'crypto';
 
@@ -16,6 +21,13 @@ const mysqlConnection = mysql.createConnection({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
+});
+mysqlConnection.connect((err) => {
+  if (err) {
+    console.error('Error connecting to the database:', err);
+    return;
+  }
+  console.log('Connected to the database!');
 });
 
 //User related querys
@@ -458,13 +470,12 @@ const allowedOrigins = ['http://localhost:5173', process.env.FRONTEND_PATH];
 const corsOptions = {
   origin: (origin: any, callback: any) => {
     if (allowedOrigins.includes(origin) || !origin) {
-      console.error(`${origin}`);
       callback(null, true);
     } else {
-      console.error(`Blocked by CORS: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
+  methods: ['POST', 'GET', 'PUT', 'DELETE'],
   credentials: true, // Allow cookies and credentials
 };
 
