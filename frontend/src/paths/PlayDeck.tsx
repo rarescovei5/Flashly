@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import useAxiosPrivate from '../hooks/userAxiosPrivate';
 
 //TODO: Add a sidebar that shows the current progress as a filled bar that goes from 0% to 100%
-//      New logic doesn t actually work
+
 const PlayDeck = () => {
   const navigate = useNavigate();
   const axiosPrivateInstance = useAxiosPrivate();
@@ -36,38 +36,56 @@ const PlayDeck = () => {
   //Find Cards that need to be reviewed
   useEffect(() => {
     if (hasReceivedCards) {
-      const today = new Date().toISOString().slice(0, 10);
-
       const newCardsLimit =
         deck?.settings.defaultSettings.dailyLimits.newCards!;
       const maxReviewsLimit =
         deck?.settings.defaultSettings.dailyLimits.maximumReviews!;
-
-      let newCardsAdded = 0;
-      let reviewCardsAdded = 0;
 
       const newReviewCards: number[] = [];
 
       // Add cards that have not been reviewed
       for (let i = 0; i < cards.length; i++) {
         if (
-          newCardsAdded < newCardsLimit &&
+          newReviewCards.length < newCardsLimit &&
           cards[i].last_reviewed_at === null
         ) {
           newReviewCards.push(i);
-          newCardsAdded++;
         }
       }
 
       // Add cards that are due for review
+      const today = new Date().getTime();
       for (let i = 0; i < cards.length; i++) {
-        if (
-          reviewCardsAdded < maxReviewsLimit &&
-          cards[i].next_review_at?.slice(0, 10) === today
-        ) {
+        const nextReviewDate = new Date(cards[i].next_review_at!).getTime();
+        const condition = today - nextReviewDate > 0;
+
+        if (newReviewCards.length < maxReviewsLimit && condition) {
           newReviewCards.push(i);
-          reviewCardsAdded++;
         }
+      }
+
+      //if there are no cards to review or do, review cards in order of next_review_at
+      if (newReviewCards.length === 0) {
+        let tempCards = [...cards];
+        tempCards = tempCards
+          .sort((a, b) => {
+            const dateA = new Date(a.next_review_at!).getTime();
+            const dateB = new Date(b.next_review_at!).getTime();
+            return dateA - dateB;
+          })
+          .splice(
+            0,
+            maxReviewsLimit > cards.length ? cards.length : maxReviewsLimit
+          );
+
+        tempCards.forEach((card) => {
+          for (let i = 0; i < cards.length; i++) {
+            if (cards[i].id === card.id) {
+              newReviewCards.push(i);
+              break;
+            }
+          }
+        });
       }
 
       setReviewCards(newReviewCards);
@@ -86,10 +104,16 @@ const PlayDeck = () => {
     const controller = new AbortController();
 
     const saveDeck = async () => {
+      let updatedCards = cards.map((card) => {
+        return { ...card, repetitions: 0 };
+      });
+
+      console.log(updatedCards);
+
       const data = {
         name: deck!.name,
         settings: deck!.settings,
-        flashcards: cards,
+        flashcards: updatedCards,
       };
 
       try {
@@ -151,6 +175,7 @@ const PlayDeck = () => {
         case 'Hard':
           newEaseFactor = Math.max(1.3, newEaseFactor - 0.2);
           newInterval = Math.max(1, newInterval * 0.5);
+          newRepetitions += 1;
           break;
         case 'Challenging':
           newEaseFactor = Math.max(1.3, newEaseFactor - 0.3);
@@ -185,7 +210,11 @@ const PlayDeck = () => {
     });
 
     // Update current Card
-    if (feedback === 'Easy' || feedback === 'Normal') {
+    const maxAllowedReviews =
+      feedback !== 'Challenging' &&
+      cards[reviewCards[currentCard]].repetitions >= 2;
+
+    if (feedback === 'Easy' || feedback === 'Normal' || maxAllowedReviews) {
       const newReviewCards = [...reviewCards];
       newReviewCards.splice(currentCard, 1);
       setReviewCards(newReviewCards);
