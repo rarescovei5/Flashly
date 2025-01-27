@@ -219,6 +219,7 @@ const getUsersDecks = (req: express.Request, res: express.Response) => {
 const getUsersDeck = async (req: express.Request, res: express.Response) => {
   const q = 'SELECT * FROM decks WHERE id = ?';
   const deck_id = parseInt(req.params.id!);
+  const user_id = req.body.user_id;
 
   const values = [deck_id];
 
@@ -235,6 +236,10 @@ const getUsersDeck = async (req: express.Request, res: express.Response) => {
     }
 
     const deck = deckData[0];
+
+    if (deck.user_id !== user_id) {
+      return res.status(401).send({ error: 'Unauthorized' });
+    }
 
     try {
       // Fetch the flashcards associated with the deck
