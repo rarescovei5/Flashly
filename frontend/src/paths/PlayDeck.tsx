@@ -4,17 +4,82 @@ import useDeck from '../hooks/useDeck';
 import { useEffect, useState } from 'react';
 import useAxiosPrivate from '../hooks/userAxiosPrivate';
 
+//TODO: Add a sidebar that shows the current progress as a filled bar that goes from 0% to 100%
+//      New logic doesn t actually work
 const PlayDeck = () => {
   const navigate = useNavigate();
+  const axiosPrivateInstance = useAxiosPrivate();
 
+  const colorMap: { [key: string]: string[] } = {
+    'c-light': ['#212121', '#141414', '#070707'],
+    'c-primary': ['#FBE87E', '#E1CF72', '#C7B666'],
+    'c-blue': ['#1A87EC', '#1467B9', '#0F4786'],
+    'c-green': ['#71F65A', '#5AC746', '#449832'],
+    'c-orange': ['#FF7F3B', '#DB6F33', '#B75F2B'],
+    'c-pink': ['#FD4798', '#D93C81', '#B4326B'],
+  };
+
+  //All Cards
   const deckId = parseInt(useParams().deckId!);
   const { deck, cards, setCards } = useDeck(deckId);
 
+  //Review Cards
+  const [hasReceivedCards, setHasReceivedCards] = useState(false);
+  const [reviewCards, setReviewCards] = useState<number[]>([]);
+  const [reviewedCards, setReviewedCards] = useState(0);
+
+  //Current Card Logic
   const [currentCard, setCurrentCard] = useState(0);
   const [isRevealed, setIsRevealed] = useState(false);
-  const axiosPrivateInstance = useAxiosPrivate();
   const [isEnding, setIsEnding] = useState(false);
 
+  //Find Cards that need to be reviewed
+  useEffect(() => {
+    if (hasReceivedCards) {
+      const today = new Date().toISOString().slice(0, 10);
+
+      const newCardsLimit =
+        deck?.settings.defaultSettings.dailyLimits.newCards!;
+      const maxReviewsLimit =
+        deck?.settings.defaultSettings.dailyLimits.maximumReviews!;
+
+      let newCardsAdded = 0;
+      let reviewCardsAdded = 0;
+
+      const newReviewCards: number[] = [];
+
+      // Add cards that have not been reviewed
+      for (let i = 0; i < cards.length; i++) {
+        if (
+          newCardsAdded < newCardsLimit &&
+          cards[i].last_reviewed_at === null
+        ) {
+          newReviewCards.push(i);
+          newCardsAdded++;
+        }
+      }
+
+      // Add cards that are due for review
+      for (let i = 0; i < cards.length; i++) {
+        if (
+          reviewCardsAdded < maxReviewsLimit &&
+          cards[i].next_review_at?.slice(0, 10) === today
+        ) {
+          newReviewCards.push(i);
+          reviewCardsAdded++;
+        }
+      }
+
+      setReviewCards(newReviewCards);
+    }
+  }, [hasReceivedCards]);
+  useEffect(() => {
+    if (cards.length > 0) {
+      setHasReceivedCards(true);
+    }
+  }, [cards]);
+
+  //Save new Data
   useEffect(() => {
     if (!isEnding) return;
 
@@ -56,15 +121,6 @@ const PlayDeck = () => {
   const minutes = Math.floor((time % 360000) / 6000);
   const seconds = Math.floor((time % 6000) / 100);
 
-  let colorMap: { [key: string]: string[] } = {
-    'c-light': ['#212121', '#070707'],
-    'c-primary': ['#FBE87E', '#C7B666'],
-    'c-blue': ['#1A87EC', '#0F4786'],
-    'c-green': ['#71F65A', '#449832'],
-    'c-orange': ['#FF7F3B', '#B75F2B'],
-    'c-pink': ['#FD4798', '#B4326B'],
-  };
-
   const handleReveal = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setIsRunning(false);
@@ -74,9 +130,10 @@ const PlayDeck = () => {
   const handleFeedback = async (
     feedback: 'Easy' | 'Normal' | 'Hard' | 'Challenging'
   ) => {
-    // Placeholder function to update card data (replace with actual API call)
-    const updateCardData = (feedback: string) => {
-      const card = cards[currentCard];
+    setReviewedCards((prev) => prev + 1);
+    // Calculate new values based on feedback
+    const calculateCardFeedback = (feedback: string) => {
+      const card = cards[reviewCards[currentCard]];
       let newInterval = card.interval_days;
       let newEaseFactor = card.ease_factor;
       let newRepetitions = card.repetitions;
@@ -104,10 +161,10 @@ const PlayDeck = () => {
 
       return { newEaseFactor, newRepetitions, newInterval };
     };
-
     const { newEaseFactor, newRepetitions, newInterval } =
-      updateCardData(feedback);
+      calculateCardFeedback(feedback);
 
+    // Update card with feedback given
     const data = {
       ease_factor: newEaseFactor,
       repetitions: newRepetitions,
@@ -118,22 +175,39 @@ const PlayDeck = () => {
         .slice(0, 19)
         .replace('T', ' '),
     };
-
     setCards((prevCards) => {
       const updatedCards = [...prevCards];
-      updatedCards[currentCard] = { ...updatedCards[currentCard], ...data };
+      updatedCards[reviewCards[currentCard]] = {
+        ...updatedCards[reviewCards[currentCard]],
+        ...data,
+      };
       return updatedCards;
     });
 
-    // Move to the next card
-    if (
-      currentCard >= deck?.settings.defaultSettings.dailyLimits.newCards! ||
-      currentCard >= cards.length - 1
-    ) {
-      setIsEnding(true);
-      return;
+    // Update current Card
+    if (feedback === 'Easy' || feedback === 'Normal') {
+      const newReviewCards = [...reviewCards];
+      newReviewCards.splice(currentCard, 1);
+      setReviewCards(newReviewCards);
+
+      // If all cards are mastered then set isEnding to true
+
+      if (
+        reviewCards.length <= 1 ||
+        reviewedCards >=
+          deck?.settings.defaultSettings.dailyLimits.newCards! +
+            deck?.settings.defaultSettings.dailyLimits.maximumReviews!
+      ) {
+        setIsEnding(true);
+        return;
+      }
+    } else {
+      setCurrentCard((prev) => prev + 1);
     }
-    setCurrentCard((prev) => prev + 1);
+
+    if (currentCard >= reviewCards.length - 1) {
+      setCurrentCard(0);
+    }
     setIsRevealed(false);
     setTime(0);
     setIsRunning(true);
@@ -142,7 +216,7 @@ const PlayDeck = () => {
   return (
     <>
       <Navbar />
-      {deck && (
+      {reviewCards.length > 0 && (
         <div className="w-[80%]  lg:w-[65%] 2xl:w-[50%] flex-1 mx-auto my-20 flex flex-col gap-8">
           <div className="">
             <h3 className="h3 text-center">{deck?.name}</h3>
@@ -153,11 +227,11 @@ const PlayDeck = () => {
                 className="flex-1 px-4 rounded-2xl flex justify-center items-center"
                 style={{
                   backgroundColor:
-                    colorMap[deck?.settings.defaultSettings.deckColor][0],
+                    colorMap[deck?.settings.defaultSettings.deckColor!][0],
                 }}
               >
                 <h4 className="h4 text-c-dark ">
-                  {cards[currentCard].question}
+                  {cards[reviewCards[currentCard]].question}
                 </h4>
               </div>
             ) : (
@@ -165,10 +239,12 @@ const PlayDeck = () => {
                 className="flex-1 px-4  rounded-2xl flex justify-center items-center"
                 style={{
                   backgroundColor:
-                    colorMap[deck?.settings.defaultSettings.deckColor][1],
+                    colorMap[deck?.settings.defaultSettings.deckColor!][1],
                 }}
               >
-                <h4 className="h4 text-c-dark ">{cards[currentCard].answer}</h4>
+                <h4 className="h4 text-c-dark ">
+                  {cards[reviewCards[currentCard]].answer}
+                </h4>
               </div>
             )}
 
