@@ -8,7 +8,7 @@ const Navbar = () => {
   const { auth, setAuth } = useAuth();
 
   return (
-    <div className="flex items-center w-[80%] mx-auto pt-4 z-[49]">
+    <div className="w-[80%] max-md:w-[90%] flex items-center mx-auto pt-4 z-[49]">
       <div className=" md:flex-1 overflow-hidden flex items-center max-md:mr-2">
         <Link className="inline-block" to="/">
           <h3 className="h3 hidden  md:block">Flashly</h3>

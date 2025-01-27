@@ -13,7 +13,7 @@ const Decks = () => {
   const gridStyles = {
     display: 'grid',
     gridTemplateColumns: `repeat(auto-fit, minmax(240px, ${
-      decks.length > 5 ? '1fr' : '240px'
+      decks.length > 5 || window.innerWidth < 768 ? '1fr' : '240px'
     }))`,
     gridTemplateRows: 'max-content',
     gap: '1rem',
@@ -56,7 +56,7 @@ const Decks = () => {
       {decks.length > 0 ? (
         <div
           style={gridStyles}
-          className="w-[80%] flex-1 my-10 mx-auto overflow-y-auto pr-4"
+          className="w-[80%] max-md:w-[90%] flex-1 my-10 mx-auto overflow-y-auto pr-4"
         >
           {decks.map((deck) => {
             return (
@@ -115,7 +115,7 @@ const Decks = () => {
           </button>
         </div>
       ) : (
-        <div className=" flex flex-col items-center justify-center mb-20 w-[80%] flex-1 mx-auto  ">
+        <div className="w-[80%] max-md:w-[90%] flex flex-col items-center justify-center mb-20 flex-1 mx-auto  ">
           <img src="/noDecks.svg" alt="" />
           <h3 className="h3 mb-6">You currently have no decks!</h3>
           <button

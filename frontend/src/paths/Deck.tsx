@@ -92,8 +92,6 @@ const Deck = () => {
     const controller = new AbortController();
 
     const saveDeck = async () => {
-      console.log(cards);
-
       const data = {
         name: deck!.name,
         settings: deck!.settings,
@@ -126,7 +124,7 @@ const Deck = () => {
       />
       <Navbar />
       {settingsOpen && (
-        <div className="w-[80%] mx-auto flex-1 my-10 flex flex-col gap-4">
+        <div className="w-[80%] max-md:w-[90%] mx-auto flex-1 my-10 flex flex-col gap-4">
           <div className="mb-6">
             <div className="flex justify-between">
               <div>
@@ -487,7 +485,7 @@ const Deck = () => {
         </div>
       )}
       {deck && !settingsOpen && (
-        <div className="w-[80%] mx-auto my-10 flex-1  grid grid-cols-1 grid-rows-[max-content_1fr_max-content] gap-6">
+        <div className="w-[80%] max-md:w-[90%] mx-auto my-10 flex-1  grid grid-cols-1 grid-rows-[max-content_1fr_max-content] gap-6">
           <div className="flex justify-between items-center ">
             <div className=" flex-1">
               <input
@@ -496,7 +494,7 @@ const Deck = () => {
                     deck.name.length > 0 ? `${deck.name.length}ch` : '100%'
                   }`,
                 }}
-                className="h4 bg-transparent outline-none"
+                className="h4 max-md:p-body bg-transparent outline-none"
                 type="text"
                 value={deck.name}
                 onChange={(e) => {
@@ -554,7 +552,9 @@ const Deck = () => {
             <div className="basis-[55%] max-h-[50vh] flex flex-col gap-2 overflow-y-auto pr-2">
               {cards.map((card, index) => (
                 <button
-                  className="group text-left relative bg-c-light p-4 rounded-2xl p-small"
+                  className={`${
+                    selectedCard === index ? 'w-[95%]' : ''
+                  } group relative bg-c-light p-4 rounded-2xl`}
                   key={index}
                   onClick={() => {
                     setSelectedCard(index);
@@ -562,8 +562,10 @@ const Deck = () => {
                     setLocalQuestion(card.question);
                   }}
                 >
-                  {index + 1}. {card.question}
-                  <span className="text-c-dark">-</span> {card.answer}
+                  <p className="p-small text-left max-md:mr-4">
+                    {`${index + 1}. ${card.question}`}
+                    <span className="text-c-dark">-</span> {card.answer}
+                  </p>
                   <div
                     className="group-hover:block hidden absolute right-4 top-1/2 -translate-y-1/2 hover:bg-c-dark px-2 py-2 rounded-full"
                     onClick={(e) => {
@@ -616,7 +618,7 @@ const Deck = () => {
                 <>
                   <div className="flex flex-col gap-4 basis-[80%] w-full">
                     <div className="basis-[40%] flex flex-col">
-                      <h4 className="h4 mb-2">Card Question</h4>
+                      <h4 className="h4 max-md:p-body mb-2">Card Question</h4>
                       <textarea
                         className="text-[#fff] bg-c-light flex-1 w-full p-4 rounded-2xl resize-none outline-none p-small"
                         name="question"
@@ -628,7 +630,7 @@ const Deck = () => {
                       ></textarea>
                     </div>
                     <div className="basis-[40%] flex flex-col">
-                      <h4 className="h4 mb-2">Card Answer</h4>
+                      <h4 className="h4 max-md:p-body  mb-2">Card Answer</h4>
                       <textarea
                         className="text-[#fff] bg-c-light flex-1 w-full p-4 rounded-2xl resize-none outline-none p-small"
                         name="answer"
@@ -645,7 +647,7 @@ const Deck = () => {
                 <>
                   <div className="flex flex-col gap-4 basis-[80%] w-full">
                     <div className="basis-[40%] flex flex-col">
-                      <h4 className="h4 mb-2">Card Question</h4>
+                      <h4 className="h4 max-md:p-body mb-2">Card Question</h4>
                       <textarea
                         className="text-[#fff] bg-c-light flex-1 w-full p-4 rounded-2xl resize-none outline-none p-small"
                         name="question"
@@ -655,7 +657,7 @@ const Deck = () => {
                       ></textarea>
                     </div>
                     <div className="basis-[40%] flex flex-col">
-                      <h4 className="h4 mb-2">Card Answer</h4>
+                      <h4 className="h4 max-md:p-body mb-2">Card Answer</h4>
                       <textarea
                         className="text-[#fff] bg-c-light flex-1 w-full p-4 rounded-2xl resize-none outline-none p-small"
                         name="answer"
@@ -671,14 +673,12 @@ const Deck = () => {
           </div>
           <div className="flex justify-between">
             <div className="basis-[30%] h-full bg-c-light rounded-2xl p-4 flex flex-col gap-2">
-              <p>Deck Stats</p>
+              <p className="h4 max-md:p-body">Deck Stats</p>
               <hr />
-              <p>
-                New <span className="text-c-dark">(today)</span>
-              </p>
-              <p>Review</p>
-              <p>Due</p>
-              <p>Left</p>
+              <p className="p-small">New</p>
+              <p className="p-small">Review</p>
+              <p className="p-small">Due</p>
+              <p className="p-small">Left</p>
             </div>
             <div className="basis-[65%] flex justify-between">
               <div

@@ -108,8 +108,6 @@ const PlayDeck = () => {
         return { ...card, repetitions: 0 };
       });
 
-      console.log(updatedCards);
-
       const data = {
         name: deck!.name,
         settings: deck!.settings,
