@@ -124,6 +124,7 @@ const registerUser = (req: express.Request, res: express.Response) => {
     return res.status(200).send({ error: 'No Error' });
   });
 };
+
 const loginUser = (req: express.Request, res: express.Response) => {
   isDebugging &&
     console.log(
@@ -188,6 +189,7 @@ const loginUser = (req: express.Request, res: express.Response) => {
           user_id,
         ]);
 
+      let aborted = false;
       mysqlConnection.query(q, [refreshToken, user_id], (err, data) => {
         if (err) {
           isDebugging &&
@@ -195,11 +197,13 @@ const loginUser = (req: express.Request, res: express.Response) => {
               '[loginUser]: Error updating refresh token in database:',
               err
             ); // Log database error
+          aborted = true;
           return res.status(500).send({ error: err });
         }
         isDebugging &&
           console.log('[loginUser]: Refresh token updated in database');
       });
+      if (aborted) return;
 
       // Send Results
       isDebugging &&
