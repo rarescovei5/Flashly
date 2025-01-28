@@ -177,7 +177,7 @@ const loginUser = (req: express.Request, res: express.Response) => {
         console.log('[loginUser]: Access and refresh tokens created');
 
       // Save Access Token
-      const q = 'UPDATE Users SET refresh_token=? WHERE id=?';
+      const q = 'UPDATE users SET refresh_token=? WHERE id=?';
       isDebugging &&
         console.log(
           '[loginUser]: Prepared query for updating refresh token:',
