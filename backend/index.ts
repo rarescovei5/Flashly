@@ -30,6 +30,9 @@ mysqlConnection.connect((err) => {
   }
   console.log('Connected to the database!');
 });
+mysqlConnection.on('error', (err) => {
+  console.error('Database error:', err);
+});
 
 //User related querys
 const registerUser = (req: express.Request, res: express.Response) => {
