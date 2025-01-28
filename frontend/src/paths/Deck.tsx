@@ -16,6 +16,46 @@ const Deck = () => {
   const deckId = parseInt(useParams().deckId!, 10);
   const { deck, setDeck, cards, setCards } = useDeck(deckId!);
 
+  const getCardsNew = () => {
+    let amount = 0;
+    const limit = deck!.settings.defaultSettings.dailyLimits.newCards;
+    for (let i = 0; i < cards.length; i++) {
+      if (cards[i].last_reviewed_at === null) {
+        amount++;
+      }
+    }
+    return amount > limit ? limit : amount;
+  };
+  const getCardsToReview = () => {
+    let amount = 0;
+    const today = new Date().getTime();
+    for (let i = 0; i < cards.length; i++) {
+      const nextReviewDate = new Date(cards[i].next_review_at!).getTime();
+      const condition = today - nextReviewDate > 0;
+
+      if (condition) {
+        amount++;
+      }
+    }
+    return amount;
+  };
+  const getCardsDue = () => {
+    let amount = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set the time to midnight to ignore the time part
+
+    for (let i = 0; i < cards.length; i++) {
+      const nextReviewDate = new Date(cards[i].next_review_at!);
+      nextReviewDate.setHours(0, 0, 0, 0); // Set the time to midnight to ignore the time part
+
+      if (today >= nextReviewDate) {
+        amount++;
+      }
+    }
+
+    return amount;
+  };
+
   const axiosPrivateInstance = useAxiosPrivate();
 
   const [selectedCard, setSelectedCard] = useState(-1);
@@ -675,10 +715,21 @@ const Deck = () => {
             <div className="basis-[30%] h-full bg-c-light rounded-2xl p-4 flex flex-col gap-2">
               <p className="h4 max-md:p-body">Deck Stats</p>
               <hr />
-              <p className="p-small">New</p>
-              <p className="p-small">Review</p>
-              <p className="p-small">Due</p>
-              <p className="p-small">Left</p>
+              <p className="p-small flex items-center justify-between">
+                New <span>{getCardsNew()}</span>
+              </p>
+              <p className="p-small flex items-center justify-between">
+                Review
+                <span>{getCardsToReview()}</span>
+              </p>
+              <p className="p-small flex items-center justify-between">
+                Due
+                <span>{getCardsDue()}</span>
+              </p>
+              <p className="p-small flex items-center justify-between">
+                Total
+                <span>{cards.length}</span>
+              </p>
             </div>
             <div className="basis-[65%] flex justify-between">
               <div

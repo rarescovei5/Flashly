@@ -800,11 +800,6 @@ app
   .get(verifyJWT, getUsersDeck)
   .put(verifyJWT, updateDeck);
 
-// app
-//   .route('/api/flashcardprogress')
-//   .get(verifyJWT, getFlashcardProgress)
-//   .post(verifyJWT, updateFlashcardProgress)
-//   .put(verifyJWT, updateFlashcardProgress);
 //Server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
