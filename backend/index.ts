@@ -14,8 +14,9 @@ import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 
-//Connect to the database
+const isDebugging = process.env.DEBUG_PRINTS || false;
 
+//Connect to the database
 const mysqlConnection = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -520,6 +521,8 @@ app
 //Server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
+  isDebugging && console.log('[server]: Debug mode on');
   console.log(`[server]: Allowed origins ${JSON.stringify(allowedOrigins)}`);
   console.log(`[server]: Running...`);
+  console.log(`-------------------------------`);
 });
