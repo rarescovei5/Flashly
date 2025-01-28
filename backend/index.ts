@@ -22,33 +22,7 @@ const mysqlConnection = mysql.createConnection({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  connectTimeout: 20000,
 });
-
-function connectToDatabase() {
-  mysqlConnection.connect((err) => {
-    if (err) {
-      console.error('Error connecting to the database:', err);
-      return;
-    }
-    console.log('Connected to the database!');
-  });
-}
-
-// Reconnect if the connection is closed
-mysqlConnection.on('error', (err) => {
-  console.error('Database connection error:', err);
-  if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-    // Reconnect if the connection was lost
-    connectToDatabase();
-  } else {
-    // Handle other errors
-    console.error('Unhandled error:', err);
-  }
-});
-
-// Call this function to connect to the database initially
-connectToDatabase();
 
 //User related querys
 const registerUser = (req: express.Request, res: express.Response) => {
