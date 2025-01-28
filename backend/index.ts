@@ -708,7 +708,7 @@ const handleRefreshToken = (req: express.Request, res: express.Response) => {
   }
 
   const refreshToken = cookies.jwt;
-  const q = 'SELECT * FROM Users WHERE refresh_token=?';
+  const q = 'SELECT * FROM users WHERE refresh_token=?';
 
   // Debugging statement for the refresh token being used in the query
   isDebugging &&
