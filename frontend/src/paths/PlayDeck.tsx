@@ -1,22 +1,20 @@
-import { useNavigate, useParams } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import useDeck from '../hooks/useDeck';
-import { useEffect, useState } from 'react';
-import useAxiosPrivate from '../hooks/userAxiosPrivate';
-
-//TODO: Add a sidebar that shows the current progress as a filled bar that goes from 0% to 100%
+import { useNavigate, useParams } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import useDeck from "../hooks/useDeck";
+import { useEffect, useState } from "react";
+import useAxiosPrivate from "../hooks/userAxiosPrivate";
 
 const PlayDeck = () => {
   const navigate = useNavigate();
   const axiosPrivateInstance = useAxiosPrivate();
 
   const colorMap: { [key: string]: string[] } = {
-    'c-light': ['#212121', '#141414', '#070707'],
-    'c-primary': ['#FBE87E', '#E1CF72', '#C7B666'],
-    'c-blue': ['#1A87EC', '#1467B9', '#0F4786'],
-    'c-green': ['#71F65A', '#5AC746', '#449832'],
-    'c-orange': ['#FF7F3B', '#DB6F33', '#B75F2B'],
-    'c-pink': ['#FD4798', '#D93C81', '#B4326B'],
+    "c-light": ["#212121", "#141414", "#070707"],
+    "c-primary": ["#FBE87E", "#E1CF72", "#C7B666"],
+    "c-blue": ["#1A87EC", "#1467B9", "#0F4786"],
+    "c-green": ["#71F65A", "#5AC746", "#449832"],
+    "c-orange": ["#FF7F3B", "#DB6F33", "#B75F2B"],
+    "c-pink": ["#FD4798", "#D93C81", "#B4326B"],
   };
 
   //All Cards
@@ -56,6 +54,10 @@ const PlayDeck = () => {
       // Add cards that are due for review
       const today = new Date().getTime();
       for (let i = 0; i < cards.length; i++) {
+        if (cards[i].next_review_at === null) {
+          continue;
+        }
+
         const nextReviewDate = new Date(cards[i].next_review_at!).getTime();
         const condition = today - nextReviewDate > 0;
 
@@ -150,43 +152,43 @@ const PlayDeck = () => {
   };
 
   const handleFeedback = async (
-    feedback: 'Easy' | 'Normal' | 'Hard' | 'Challenging'
+    feedback: "Easy" | "Normal" | "Hard" | "Challenging"
   ) => {
     setReviewedCards((prev) => prev + 1);
-    
+
     // Calculate new values based on feedback
     const calculateCardFeedback = (feedback: string) => {
       const card = cards[reviewCards[currentCard]];
-  
+
       // Map the feedback to a quality score.
       let quality: number;
       switch (feedback) {
-        case 'Easy':
+        case "Easy":
           quality = 5;
           break;
-        case 'Normal':
+        case "Normal":
           quality = 4;
           break;
-        case 'Hard':
+        case "Hard":
           quality = 3;
           break;
-        case 'Challenging':
+        case "Challenging":
           quality = 2;
           break;
         default:
           quality = 0; // fallback
       }
-  
+
       // Update the ease factor using the SM‑2 formula:
       //   EF' = EF + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02))
       let newEaseFactor =
         card.ease_factor +
         (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
       if (newEaseFactor < 1.3) newEaseFactor = 1.3;
-  
+
       let newRepetitions: number = card.repetitions;
       let newInterval: number;
-  
+
       // For feedback indicating less-than-ideal recall (quality < 4),
       // do not increment repetitions; instead, reduce the interval.
       if (quality < 4) {
@@ -208,7 +210,11 @@ const PlayDeck = () => {
           newInterval = card.interval_days * newEaseFactor;
         }
       }
-  
+
+      if (feedback === "Easy") {
+        newInterval = 6;
+      }
+
       return { newEaseFactor, newRepetitions, newInterval };
     };
 
@@ -220,11 +226,11 @@ const PlayDeck = () => {
       ease_factor: newEaseFactor,
       repetitions: newRepetitions,
       interval_days: newInterval,
-      last_reviewed_at: new Date().toISOString().slice(0, 19).replace('T', ' '),
+      last_reviewed_at: new Date().toISOString().slice(0, 19).replace("T", " "),
       next_review_at: new Date(Date.now() + newInterval * 24 * 60 * 60 * 1000)
         .toISOString()
         .slice(0, 19)
-        .replace('T', ' '),
+        .replace("T", " "),
     };
     setCards((prevCards) => {
       const updatedCards = [...prevCards];
@@ -234,14 +240,13 @@ const PlayDeck = () => {
       };
       return updatedCards;
     });
-   
 
     // Update current Card
     const maxAllowedReviews =
-      feedback !== 'Challenging' &&
+      feedback !== "Challenging" &&
       cards[reviewCards[currentCard]].repetitions > 1;
 
-    if (maxAllowedReviews) {
+    if (maxAllowedReviews || feedback === "Easy") {
       const newReviewCards = [...reviewCards];
       newReviewCards.splice(currentCard, 1);
       setReviewCards(newReviewCards);
@@ -274,9 +279,13 @@ const PlayDeck = () => {
       <Navbar />
       {reviewCards.length > 0 && (
         <div className="w-[80%]  lg:w-[65%] 2xl:w-[50%] flex-1 mx-auto my-20 flex flex-col gap-8">
-          <div className="">
-            <h3 className="h3 text-center">{deck?.name}</h3>
+          <div>
+            <h3 className="h3 text-center mb-2">{deck?.name}</h3>
+            <div className="h4 text-center">{`${currentCard + 1}/${
+              reviewCards.length
+            }`}</div>
           </div>
+
           <div className="flex-1 flex flex-col gap-2">
             {!isRevealed ? (
               <div
@@ -306,8 +315,8 @@ const PlayDeck = () => {
 
             <div className="flex justify-center">
               <h4 className="h4">
-                {String(minutes).padStart(2, '0')}:
-                {String(seconds).padStart(2, '0')}
+                {String(minutes).padStart(2, "0")}:
+                {String(seconds).padStart(2, "0")}
               </h4>
             </div>
           </div>
@@ -324,28 +333,28 @@ const PlayDeck = () => {
             <div className="grid max-xl:grid-cols-2 grid-cols-4 gap-4 ">
               <button
                 className="relative py-3 flex justify-center items-center gap-2 bg-c-light rounded-2xl"
-                onClick={() => handleFeedback('Easy')}
+                onClick={() => handleFeedback("Easy")}
               >
                 <img className="absolute left-4" src="/easy.svg" alt="" />
                 <p className="max-md:p-small p-body">Easy</p>
               </button>
               <button
                 className="relative py-3 flex justify-center items-center gap-2 bg-c-light rounded-2xl"
-                onClick={() => handleFeedback('Normal')}
+                onClick={() => handleFeedback("Normal")}
               >
                 <img className="absolute left-4" src="/normal.svg" alt="" />
                 <p className="max-md:p-small p-body">Normal</p>
               </button>
               <button
                 className="relative py-3 flex justify-center items-center gap-2 bg-c-light rounded-2xl"
-                onClick={() => handleFeedback('Hard')}
+                onClick={() => handleFeedback("Hard")}
               >
                 <img className="absolute left-4" src="/hard.svg" alt="" />
                 <p className="max-md:p-small p-body">Hard</p>
               </button>
               <button
                 className="relative py-3 flex justify-center items-center gap-2 bg-c-light rounded-2xl"
-                onClick={() => handleFeedback('Challenging')}
+                onClick={() => handleFeedback("Challenging")}
               >
                 <img
                   className="absolute left-4"
