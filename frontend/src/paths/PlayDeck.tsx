@@ -156,32 +156,52 @@ const PlayDeck = () => {
     // Calculate new values based on feedback
     const calculateCardFeedback = (feedback: string) => {
       const card = cards[reviewCards[currentCard]];
-      let newInterval = card.interval_days;
-      let newEaseFactor = card.ease_factor;
-      let newRepetitions = card.repetitions;
-
+  
+      // Map feedback to quality scores according to SM-2
+      let quality: number;
       switch (feedback) {
         case 'Easy':
-          newEaseFactor += 0.1;
-          newRepetitions += 1;
-          newInterval *= newEaseFactor * 1.5;
+          quality = 5;
           break;
         case 'Normal':
-          newRepetitions += 1;
-          newInterval *= newEaseFactor;
+          quality = 4;
           break;
         case 'Hard':
-          newEaseFactor = Math.max(1.3, newEaseFactor - 0.2);
-          newInterval = Math.max(1, newInterval * 0.5);
-          newRepetitions += 1;
+          quality = 3;
           break;
         case 'Challenging':
-          newEaseFactor = Math.max(1.3, newEaseFactor - 0.3);
-          newInterval = 1; // Reset interval
-          newRepetitions = 0; // Reset repetitions
+          quality = 2;
           break;
+        default:
+          quality = 0; // Fallback (should not occur)
       }
-
+  
+      // Update ease factor using the SM-2 formula
+      let newEaseFactor =
+        card.ease_factor +
+        (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+      if (newEaseFactor < 1.3) newEaseFactor = 1.3;
+  
+      let newRepetitions: number;
+      let newInterval: number;
+  
+      // If quality response is less than 3, reset repetitions and interval.
+      if (quality < 3) {
+        newRepetitions = 0;
+        newInterval = 1;
+      } else {
+        // Successful review; increase repetition count
+        newRepetitions = card.repetitions + 1;
+        if (newRepetitions === 1) {
+          newInterval = 1;
+        } else if (newRepetitions === 2) {
+          newInterval = 6;
+        } else {
+          // For subsequent reviews, interval is the previous interval multiplied by the ease factor.
+          newInterval = card.interval_days * newEaseFactor;
+        }
+      }
+  
       return { newEaseFactor, newRepetitions, newInterval };
     };
     const { newEaseFactor, newRepetitions, newInterval } =
