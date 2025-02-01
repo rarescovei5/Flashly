@@ -1,10 +1,10 @@
-import { Link, useParams } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import useDeck from '../hooks/useDeck';
-import { useEffect, useState } from 'react';
-import useAxiosPrivate from '../hooks/userAxiosPrivate';
-import ErrorPopup from '../components/ErrorPopup';
-import { DeckType } from '../types';
+import { Link, useNavigate, useParams } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import useDeck from "../hooks/useDeck";
+import { useEffect, useState } from "react";
+import useAxiosPrivate from "../hooks/userAxiosPrivate";
+import ErrorPopup from "../components/ErrorPopup";
+import { DeckType, Flashcard } from "../types";
 
 /*
 TODO:
@@ -15,6 +15,97 @@ TODO:
 const Deck = () => {
   const deckId = parseInt(useParams().deckId!, 10);
   const { deck, setDeck, cards, setCards } = useDeck(deckId!);
+  const [shareInput, setShareInput] = useState("");
+  const navigate = useNavigate();
+
+  const contentToObjects = (encryptedString: string): Flashcard[] | null => {
+    const result: Flashcard[] = [];
+    let current = 0;
+    let i = 0;
+
+    if (encryptedString[0] === "[") {
+      encryptedString = contentToString(JSON.parse(encryptedString));
+    }
+
+    while (i < encryptedString.length) {
+      // Find the position of the next "@" delimiter.
+      let j = i;
+      while (j < encryptedString.length && encryptedString[j] !== "@") {
+        j++;
+      }
+      if (j >= encryptedString.length) {
+        setErrorMsg(`Invalid input format: missing '@' after position ${i}`);
+        return null;
+      }
+
+      // Extract the number before the '@'
+      const numberString = encryptedString.slice(i, j);
+      const length = parseInt(numberString, 10);
+      if (isNaN(length) || length < 0) {
+        setErrorMsg(
+          `Invalid number for length at position ${i}: "${numberString}"`
+        );
+        return null;
+      }
+
+      // The word should start after the '@'
+      const startOfWord = j + 1;
+      const endOfWord = startOfWord + length;
+      if (endOfWord > encryptedString.length) {
+        setErrorMsg(
+          `Invalid input: expected a word of length ${length} starting at position ${startOfWord}, but input is too short.`
+        );
+        return null;
+      }
+
+      const word = encryptedString.slice(startOfWord, endOfWord);
+
+      // Process the word as question or answer.
+      if (current % 2 === 0) {
+        // Create a new flashcard for the question.
+        result.push({
+          deck_id: deckId, // Assumes deckId is defined in the scope.
+          id: result.length + 1,
+          question: word,
+          answer: "",
+          ease_factor: 2.5,
+          repetitions: 0,
+          interval_days: 0,
+          last_reviewed_at: null,
+          next_review_at: null,
+        });
+      } else {
+        // There should be a flashcard already for the answer.
+        const cardIndex = Math.floor(current / 2);
+        if (cardIndex >= result.length) {
+          throw new Error(
+            `Invalid input: found answer word without a corresponding question at position ${i}.`
+          );
+        }
+        result[cardIndex].answer = word;
+      }
+
+      // Update the position for the next iteration.
+      i = endOfWord;
+      current++;
+    }
+
+    // Optionally, check that we ended on an answer (i.e. even number of items).
+    if (current % 2 !== 0) {
+      setErrorMsg("Invalid input: unmatched question without an answer.");
+      return null;
+    }
+
+    return result;
+  };
+  const contentToString = (cards: Flashcard[]): string => {
+    let result = ``;
+    for (let i = 0; i < cards.length; i++) {
+      result += `${cards[i].question.length}@${cards[i].question}`;
+      result += `${cards[i].answer.length}@${cards[i].answer}`;
+    }
+    return result;
+  };
 
   const getCardsNew = () => {
     let amount = 0;
@@ -46,6 +137,10 @@ const Deck = () => {
     today.setHours(0, 0, 0, 0); // Set the time to midnight to ignore the time part
 
     for (let i = 0; i < cards.length; i++) {
+      if (cards[i].next_review_at === null) {
+        continue;
+      }
+
       const nextReviewDate = new Date(cards[i].next_review_at!);
       nextReviewDate.setHours(0, 0, 0, 0); // Set the time to midnight to ignore the time part
 
@@ -60,44 +155,44 @@ const Deck = () => {
   const axiosPrivateInstance = useAxiosPrivate();
 
   const [selectedCard, setSelectedCard] = useState(-1);
-  const [localQuestion, setLocalQuestion] = useState('');
-  const [localAnswer, setLocalAnswer] = useState('');
+  const [localQuestion, setLocalQuestion] = useState("");
+  const [localAnswer, setLocalAnswer] = useState("");
 
   const [isSaving, setIsSaving] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState("");
 
   //Settigns Variables
   const [settingsOpen, setSettingsOpen] = useState(false);
   let colorMap: { [key: string]: string[] } = {
-    'c-light': ['#212121', '#1a1a1a'],
-    'c-primary': ['#FBE87E', '#C7B666'],
-    'c-blue': ['#1A87EC', '#0F4786'],
-    'c-green': ['#71F65A', '#449832'],
-    'c-orange': ['#FF7F3B', '#B75F2B'],
-    'c-pink': ['#FD4798', '#B4326B'],
+    "c-light": ["#212121", "#1a1a1a"],
+    "c-primary": ["#FBE87E", "#C7B666"],
+    "c-blue": ["#1A87EC", "#0F4786"],
+    "c-green": ["#71F65A", "#449832"],
+    "c-orange": ["#FF7F3B", "#B75F2B"],
+    "c-pink": ["#FD4798", "#B4326B"],
   };
 
   const validCard = () => {
-    if (localAnswer === '') {
-      setErrorMsg('Answer is required.');
+    if (localAnswer === "") {
+      setErrorMsg("Answer is required.");
       return false;
-    } else if (localQuestion === '') {
-      setErrorMsg('Question is required.');
+    } else if (localQuestion === "") {
+      setErrorMsg("Question is required.");
       return false;
     }
     return true;
   };
   const validDeck = () => {
-    if (deck?.name === '') {
-      setErrorMsg('Deck name is required.');
+    if (deck?.name === "") {
+      setErrorMsg("Deck name is required.");
       return false;
     } else if (deck?.settings.defaultSettings.dailyLimits.newCards === 0) {
-      setErrorMsg('Settings: Daily limit is required.');
+      setErrorMsg("Settings: Daily limit is required.");
       return false;
     } else if (
       deck?.settings.defaultSettings.dailyLimits.maximumReviews === 0
     ) {
-      setErrorMsg('Settings: Maximum reviews is required.');
+      setErrorMsg("Settings: Maximum reviews is required.");
       return false;
     } else if (deck?.settings.defaultSettings.timer.maximumTime === 0) {
       setErrorMsg(`Settings: Maximum time is required.`);
@@ -105,7 +200,7 @@ const Deck = () => {
     }
 
     if (cards.length === 0) {
-      setErrorMsg('Deck must have at least one card.');
+      setErrorMsg("Deck must have at least one card.");
       return false;
     }
     return true;
@@ -165,7 +260,7 @@ const Deck = () => {
       />
       <Navbar />
       {settingsOpen && (
-        <div className="w-[80%] max-md:w-[90%] mx-auto flex-1 my-10 flex flex-col gap-4">
+        <div className="w-[80%] max-md:w-[90%] mx-auto flex-1 my-10 flex flex-col gap-4 overflow-y-auto pr-4">
           <div className="mb-6">
             <div className="flex justify-between">
               <div>
@@ -184,12 +279,12 @@ const Deck = () => {
                   <p className="p-body mb-6">Deck Color</p>
                   <div className="flex justify-between gap-4 *:rounded-full">
                     {[
-                      'c-orange',
-                      'c-green',
-                      'c-blue',
-                      'c-pink',
-                      'c-primary',
-                      'c-light',
+                      "c-orange",
+                      "c-green",
+                      "c-blue",
+                      "c-pink",
+                      "c-primary",
+                      "c-light",
                     ].map((color) => (
                       <button
                         key={color}
@@ -214,8 +309,8 @@ const Deck = () => {
                           style={{ backgroundColor: colorMap[color][0] }}
                           className={`h-full rounded-full ${
                             deck?.settings.defaultSettings.deckColor === color
-                              ? 'scale-75'
-                              : ''
+                              ? "scale-75"
+                              : ""
                           }`}
                         ></div>
                       </button>
@@ -227,7 +322,7 @@ const Deck = () => {
                   <div className="flex flex-col gap-4">
                     <div className="flex justify-between items-center">
                       <p className="p-small mr-6">
-                        Maximum Time{' '}
+                        Maximum Time{" "}
                         <span className="text-c-light">(Seconds)</span>
                       </p>
                       <input
@@ -235,14 +330,14 @@ const Deck = () => {
                         min="1"
                         max="999"
                         value={
-                          deck?.settings.defaultSettings.timer.maximumTime || ''
+                          deck?.settings.defaultSettings.timer.maximumTime || ""
                         }
                         onChange={(e) => {
                           const inputValue = e.target.value;
 
                           // Validate the input value
                           if (
-                            inputValue === '' ||
+                            inputValue === "" ||
                             (Number(inputValue) >= 0 &&
                               Number(inputValue) <= 999)
                           ) {
@@ -259,7 +354,7 @@ const Deck = () => {
                                       ...prevDeck.settings.defaultSettings
                                         .timer,
                                       maximumTime:
-                                        inputValue === ''
+                                        inputValue === ""
                                           ? 0
                                           : Number(inputValue),
                                     },
@@ -300,15 +395,15 @@ const Deck = () => {
                         <div
                           className={`w-[2rem] h-[2rem] ${
                             deck?.settings.defaultSettings.timer.showTimer
-                              ? 'bg-c-dark'
-                              : ''
+                              ? "bg-c-dark"
+                              : ""
                           } rounded-xl`}
                         ></div>
                       </button>
                     </div>
                     <div className="flex justify-between items-center">
                       <p className="p-small">
-                        Calculate Time{' '}
+                        Calculate Time{" "}
                         <span className="text-c-light">(on Answer)</span>
                       </p>
                       <div>
@@ -339,8 +434,8 @@ const Deck = () => {
                           <div
                             className={`w-[2rem] h-[2rem] ${
                               deck?.settings.defaultSettings.timer.calculateTime
-                                ? 'bg-c-dark'
-                                : ''
+                                ? "bg-c-dark"
+                                : ""
                             } rounded-xl`}
                           ></div>
                         </button>
@@ -398,14 +493,14 @@ const Deck = () => {
                         max="999"
                         value={
                           deck?.settings.defaultSettings.dailyLimits.newCards ||
-                          ''
+                          ""
                         }
                         onChange={(e) => {
                           const inputValue = e.target.value;
 
                           // Validate the input value
                           if (
-                            inputValue === '' ||
+                            inputValue === "" ||
                             (Number(inputValue) >= 0 &&
                               Number(inputValue) <= 999)
                           ) {
@@ -440,14 +535,14 @@ const Deck = () => {
                         max="999"
                         value={
                           deck?.settings.defaultSettings.dailyLimits
-                            .maximumReviews || ''
+                            .maximumReviews || ""
                         }
                         onChange={(e) => {
                           const inputValue = e.target.value;
 
                           // Validate the input value
                           if (
-                            inputValue === '' ||
+                            inputValue === "" ||
                             (Number(inputValue) >= 0 &&
                               Number(inputValue) <= 999)
                           ) {
@@ -512,10 +607,70 @@ const Deck = () => {
                         <div
                           className={`w-[2rem] h-[2rem] ${
                             deck?.settings.dangerSettings.public
-                              ? 'bg-c-dark'
-                              : ''
+                              ? "bg-c-dark"
+                              : ""
                           } rounded-xl`}
                         ></div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="mb-12">
+                  <div className=" mb-6">
+                    <p className="p-body">Share</p>
+                  </div>
+                  <input
+                    type="text"
+                    className="p-small w-full bg-c-light rounded-2xl py-2 mb-2 outline-none px-2"
+                    value={shareInput}
+                    onChange={(e) => setShareInput(e.target.value)}
+                  />
+                  <div className="flex flex-col gap-4 my-2">
+                    <div className="flex justify-between items-center">
+                      <button
+                        className="flex items-center justify-center bg-c-green text-c-dark font-medium basis-[45%] p-small py-2 rounded-2xl"
+                        onClick={() => {
+                          if (shareInput.length === 0) {
+                            setErrorMsg("Share input is empty");
+                            return;
+                          }
+                          const newCards = contentToObjects(shareInput);
+                          if (newCards === null) {
+                            return;
+                          }
+                          setCards(newCards);
+                        }}
+                      >
+                        Import
+                      </button>
+                      <button
+                        className="flex items-center justify-center bg-c-green text-c-dark font-medium basis-[45%] p-small py-2 rounded-2xl"
+                        onClick={() => {
+                          const deckSchema = contentToString(cards);
+                          setShareInput(deckSchema);
+                        }}
+                      >
+                        Export
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="basis-[45%]">
+                <div className="mb-12">
+                  <p className="p-body mb-6">Delete Deck</p>
+                  <div className="flex flex-col gap-4">
+                    <div className="flex justify-between items-center">
+                      <p className="p-small">
+                        If you click this there is no going back
+                      </p>
+                      <button
+                        className="flex items-center justify-center bg-red-800 px-4 py-2 rounded-2xl"
+                        onClick={() => {
+                          navigate("/decks");
+                        }}
+                      >
+                        Delete
                       </button>
                     </div>
                   </div>
@@ -532,7 +687,7 @@ const Deck = () => {
               <input
                 style={{
                   width: `${
-                    deck.name.length > 0 ? `${deck.name.length}ch` : '100%'
+                    deck.name.length > 0 ? `${deck.name.length}ch` : "100%"
                   }`,
                 }}
                 className="h4 max-md:p-body bg-transparent outline-none"
@@ -594,7 +749,7 @@ const Deck = () => {
               {cards.map((card, index) => (
                 <button
                   className={`${
-                    selectedCard === index ? 'w-[95%]' : ''
+                    selectedCard === index ? "w-[95%]" : ""
                   } group relative bg-c-light p-4 rounded-2xl`}
                   key={index}
                   onClick={() => {
@@ -612,7 +767,7 @@ const Deck = () => {
                     onClick={(e) => {
                       e.stopPropagation();
                       if (cards.length === 1) {
-                        setErrorMsg('You cannot delete the last card');
+                        setErrorMsg("You cannot delete the last card");
                         return;
                       }
 
@@ -630,8 +785,8 @@ const Deck = () => {
                 className=" bg-c-light  py-4  rounded-2xl flex justify-center items-center"
                 onClick={() => {
                   setSelectedCard(-1);
-                  setLocalAnswer('Answer');
-                  setLocalQuestion('Question');
+                  setLocalAnswer("Answer");
+                  setLocalQuestion("Question");
 
                   setCards((prev) => [
                     ...prev,
