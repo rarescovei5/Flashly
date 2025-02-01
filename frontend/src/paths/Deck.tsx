@@ -31,7 +31,8 @@ const Deck = () => {
     const today = new Date().getTime();
     for (let i = 0; i < cards.length; i++) {
       const nextReviewDate = new Date(cards[i].next_review_at!).getTime();
-      const condition = today - nextReviewDate > 0;
+      const diff = today - nextReviewDate;
+      const condition = 24 * 60 * 60 * 1000 > diff && diff > 0;
 
       if (condition) {
         amount++;

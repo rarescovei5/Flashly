@@ -153,11 +153,12 @@ const PlayDeck = () => {
     feedback: 'Easy' | 'Normal' | 'Hard' | 'Challenging'
   ) => {
     setReviewedCards((prev) => prev + 1);
+    
     // Calculate new values based on feedback
     const calculateCardFeedback = (feedback: string) => {
       const card = cards[reviewCards[currentCard]];
   
-      // Map feedback to quality scores according to SM-2
+      // Map the feedback to a quality score.
       let quality: number;
       switch (feedback) {
         case 'Easy':
@@ -173,37 +174,44 @@ const PlayDeck = () => {
           quality = 2;
           break;
         default:
-          quality = 0; // Fallback (should not occur)
+          quality = 0; // fallback
       }
   
-      // Update ease factor using the SM-2 formula
+      // Update the ease factor using the SM‑2 formula:
+      //   EF' = EF + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02))
       let newEaseFactor =
         card.ease_factor +
         (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
       if (newEaseFactor < 1.3) newEaseFactor = 1.3;
   
-      let newRepetitions: number;
+      let newRepetitions: number = card.repetitions;
       let newInterval: number;
   
-      // If quality response is less than 3, reset repetitions and interval.
-      if (quality < 3) {
-        newRepetitions = 0;
-        newInterval = 1;
+      // For feedback indicating less-than-ideal recall (quality < 4),
+      // do not increment repetitions; instead, reduce the interval.
+      if (quality < 4) {
+        // Instead of resetting repetitions, keep the current count
+        // but reduce the interval—here we simply take half the current interval,
+        // ensuring it doesn't drop below 1 day.
+        newRepetitions++;
+        newInterval = Math.max(1, card.interval_days * 0.5);
       } else {
-        // Successful review; increase repetition count
+        // For successful feedback (Normal or Easy), increment the repetition count.
         newRepetitions = card.repetitions + 1;
+        // Set the interval based on the updated repetition count, following SM‑2:
         if (newRepetitions === 1) {
           newInterval = 1;
         } else if (newRepetitions === 2) {
           newInterval = 6;
         } else {
-          // For subsequent reviews, interval is the previous interval multiplied by the ease factor.
+          // For subsequent successes, multiply the previous interval by the updated ease factor.
           newInterval = card.interval_days * newEaseFactor;
         }
       }
   
       return { newEaseFactor, newRepetitions, newInterval };
     };
+
     const { newEaseFactor, newRepetitions, newInterval } =
       calculateCardFeedback(feedback);
 
@@ -226,13 +234,14 @@ const PlayDeck = () => {
       };
       return updatedCards;
     });
+   
 
     // Update current Card
     const maxAllowedReviews =
       feedback !== 'Challenging' &&
-      cards[reviewCards[currentCard]].repetitions >= 2;
+      cards[reviewCards[currentCard]].repetitions > 1;
 
-    if (feedback === 'Easy' || feedback === 'Normal' || maxAllowedReviews) {
+    if (maxAllowedReviews) {
       const newReviewCards = [...reviewCards];
       newReviewCards.splice(currentCard, 1);
       setReviewCards(newReviewCards);
