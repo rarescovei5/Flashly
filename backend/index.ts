@@ -131,16 +131,14 @@ const loginUser = (req: express.Request, res: express.Response) => {
     crypto.createHash("sha256").update(req.body.password).digest("hex"),
   ];
 
-  isDebugging && console.log("[loginUser]: Prepared query:", q);
-  isDebugging && console.log("[loginUser]: Query values:", values);
-
   mysqlConnection.query(q, values, (err, data) => {
     if (err) {
       isDebugging && console.error("[loginUser]: Database query error:", err); // Log database error
       return res.status(500).send({ error: err });
     }
 
-    isDebugging && console.log("[loginUser]: Query result:", data);
+    isDebugging &&
+      console.log("[loginUser]: Query result:", JSON.stringify(data as any));
 
     if (!process.env.ACCESS_TOKEN_SECRET || !process.env.REFRESH_TOKEN_SECRET) {
       isDebugging &&
@@ -171,16 +169,12 @@ const loginUser = (req: express.Request, res: express.Response) => {
 
       // Save Access Token
       const q = "UPDATE users SET refresh_token=? WHERE id=?";
+
       isDebugging &&
         console.log(
-          "[loginUser]: Prepared query for updating refresh token:",
-          q
+          "[loginUser]: Update query values:",
+          JSON.stringify([refreshToken, user_id])
         );
-      isDebugging &&
-        console.log("[loginUser]: Update query values:", [
-          refreshToken,
-          user_id,
-        ]);
 
       let aborted = false;
       mysqlConnection.query(q, [refreshToken, user_id], (err, data) => {
@@ -823,7 +817,7 @@ app.route("/api/decks/:id").get(getUsersDeck).put(updateDeck);
 //Server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  isDebugging && console.log("[server]: Debug mode on");
+  isDebugging && console.log("\x1b[0m", "[server]: Debug mode on");
   console.log(`[server]: Allowed origins ${JSON.stringify(allowedOrigins)}`);
   console.log(`[server]: Running...`);
   console.log(`-------------------------------`);
