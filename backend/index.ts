@@ -1,18 +1,18 @@
-import { config } from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
+import { config } from "dotenv";
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
 
 // Get the current directory name using import.meta.url
 const __dirname = dirname(fileURLToPath(import.meta.url));
-config({ path: resolve(__dirname, '../.env') });
+config({ path: resolve(__dirname, "../.env") });
 
-import crypto from 'crypto';
+import crypto from "crypto";
 
-import express from 'express';
-import mysql from 'mysql2';
-import cors from 'cors';
-import jwt from 'jsonwebtoken';
-import cookieParser from 'cookie-parser';
+import express from "express";
+import mysql from "mysql2";
+import cors from "cors";
+import jwt from "jsonwebtoken";
+import cookieParser from "cookie-parser";
 
 const isDebugging = process.env.DEBUG_PRINTS || false;
 
@@ -28,156 +28,156 @@ const mysqlConnection = mysql.createConnection({
 const registerUser = (req: express.Request, res: express.Response) => {
   isDebugging &&
     console.log(
-      '\x1b[34m',
-      `\n------${new Date().toISOString().slice(0, 19).replace('T', ' ')}-----`
+      "\x1b[34m",
+      `\n------${new Date().toISOString().slice(0, 19).replace("T", " ")}-----`
     );
 
   const q = `INSERT INTO users (username, email, password_hash) VALUES (?);`;
   const password = req.body.password;
 
-  isDebugging && console.log('[registerUser]: Request body:', req.body); // Log the request body
+  isDebugging && console.log("[registerUser]: Request body:", req.body); // Log the request body
 
   if (password.length < 8) {
     isDebugging &&
-      console.warn('[registerUser]: Password validation failed: too short'); // Log validation failure
-    res.status(500).send({ error: 'Password must be at least 8 characters' });
+      console.warn("[registerUser]: Password validation failed: too short"); // Log validation failure
+    res.status(500).send({ error: "Password must be at least 8 characters" });
     return;
   } else if (password.length > 24) {
     isDebugging &&
-      console.warn('[registerUser]: Password validation failed: too long'); // Log validation failure
-    res.status(500).send({ error: 'Password must be less than 24 characters' });
+      console.warn("[registerUser]: Password validation failed: too long"); // Log validation failure
+    res.status(500).send({ error: "Password must be less than 24 characters" });
     return;
   } else if (!/(?=.*[a-z])/.test(password)) {
     isDebugging &&
       console.warn(
-        '[registerUser]: Password validation failed: no lowercase letter'
+        "[registerUser]: Password validation failed: no lowercase letter"
       ); // Log validation failure
     res
       .status(500)
-      .send({ error: 'Password must contain at least one lowercase letter' });
+      .send({ error: "Password must contain at least one lowercase letter" });
     return;
   } else if (!/(?=.*[A-Z])/.test(password)) {
     isDebugging &&
       console.warn(
-        '[registerUser]: Password validation failed: no uppercase letter'
+        "[registerUser]: Password validation failed: no uppercase letter"
       ); // Log validation failure
     res
       .status(500)
-      .send({ error: 'Password must contain at least one uppercase letter' });
+      .send({ error: "Password must contain at least one uppercase letter" });
     return;
   } else if (!/(?=.*\d)/.test(password)) {
     isDebugging &&
-      console.warn('[registerUser]: Password validation failed: no number'); // Log validation failure
+      console.warn("[registerUser]: Password validation failed: no number"); // Log validation failure
     res
       .status(500)
-      .send({ error: 'Password must contain at least one number' });
+      .send({ error: "Password must contain at least one number" });
     return;
   }
 
-  isDebugging && console.log('[registerUser]: Password validation passed'); // Log password validation success
+  isDebugging && console.log("[registerUser]: Password validation passed"); // Log password validation success
 
   const values = [
     req.body.username,
     req.body.email,
-    crypto.createHash('sha256').update(req.body.password).digest('hex'),
+    crypto.createHash("sha256").update(req.body.password).digest("hex"),
   ];
 
-  isDebugging && console.log('[registerUser]: Prepared query values:', values); // Log query values before execution
+  isDebugging && console.log("[registerUser]: Prepared query values:", values); // Log query values before execution
 
   mysqlConnection.query(q, [values], (err, data) => {
     if (err) {
-      isDebugging && console.error('[registerUser]: Database error:', err); // Log database error
+      isDebugging && console.error("[registerUser]: Database error:", err); // Log database error
 
-      if (err.code === 'ER_DUP_ENTRY') {
-        let message: any = err.message.split(' ');
-        message = message[message.length - 1].replace(/'/g, '');
+      if (err.code === "ER_DUP_ENTRY") {
+        let message: any = err.message.split(" ");
+        message = message[message.length - 1].replace(/'/g, "");
 
-        if (message == 'users.email') {
+        if (message == "users.email") {
           isDebugging &&
-            console.warn('[registerUser]: Duplicate entry for email'); // Log specific duplicate entry
-          return res.status(500).send({ error: 'Email already registered' });
-        } else if (message == 'users.username_UNIQUE') {
+            console.warn("[registerUser]: Duplicate entry for email"); // Log specific duplicate entry
+          return res.status(500).send({ error: "Email already registered" });
+        } else if (message == "users.username_UNIQUE") {
           isDebugging &&
-            console.warn('[registerUser]: Duplicate entry for username'); // Log specific duplicate entry
-          return res.status(500).send({ error: 'Username taken' });
+            console.warn("[registerUser]: Duplicate entry for username"); // Log specific duplicate entry
+          return res.status(500).send({ error: "Username taken" });
         } else {
           isDebugging &&
-            console.error('[registerUser]: Unhandled duplicate entry:', err); // Log unhandled duplicate error
+            console.error("[registerUser]: Unhandled duplicate entry:", err); // Log unhandled duplicate error
           return res.status(500).send({ error: err });
         }
       } else {
         isDebugging &&
-          console.error('[registerUser]: Unhandled database error:', err); // Log other database errors
+          console.error("[registerUser]: Unhandled database error:", err); // Log other database errors
         return res.status(500).send({ error: err });
       }
     }
 
     isDebugging &&
-      console.log('[registerUser]: Query executed successfully:', data); // Log successful query execution
-    return res.status(200).send({ error: 'No Error' });
+      console.log("[registerUser]: Query executed successfully:", data); // Log successful query execution
+    return res.status(200).send({ error: "No Error" });
   });
 };
 
 const loginUser = (req: express.Request, res: express.Response) => {
   isDebugging &&
     console.log(
-      '\x1b[35m',
-      `\n------${new Date().toISOString().slice(0, 19).replace('T', ' ')}-----`
+      "\x1b[35m",
+      `\n------${new Date().toISOString().slice(0, 19).replace("T", " ")}-----`
     );
 
-  const q = 'SELECT * FROM users WHERE email=? AND password_hash=?';
+  const q = "SELECT * FROM users WHERE email=? AND password_hash=?";
   const values = [
     req.body.email,
-    crypto.createHash('sha256').update(req.body.password).digest('hex'),
+    crypto.createHash("sha256").update(req.body.password).digest("hex"),
   ];
 
-  isDebugging && console.log('[loginUser]: Prepared query:', q);
-  isDebugging && console.log('[loginUser]: Query values:', values);
+  isDebugging && console.log("[loginUser]: Prepared query:", q);
+  isDebugging && console.log("[loginUser]: Query values:", values);
 
   mysqlConnection.query(q, values, (err, data) => {
     if (err) {
-      isDebugging && console.error('[loginUser]: Database query error:', err); // Log database error
+      isDebugging && console.error("[loginUser]: Database query error:", err); // Log database error
       return res.status(500).send({ error: err });
     }
 
-    isDebugging && console.log('[loginUser]: Query result:', data);
+    isDebugging && console.log("[loginUser]: Query result:", data);
 
     if (!process.env.ACCESS_TOKEN_SECRET || !process.env.REFRESH_TOKEN_SECRET) {
       isDebugging &&
         console.error(
-          '[loginUser]: Environment variables missing: ACCESS_TOKEN_SECRET or REFRESH_TOKEN_SECRET'
+          "[loginUser]: Environment variables missing: ACCESS_TOKEN_SECRET or REFRESH_TOKEN_SECRET"
         ); // Log missing environment variables
-      return res.status(500).send({ error: 'Error while logging in' });
+      return res.status(500).send({ error: "Error while logging in" });
     }
 
     if ((data as any).length > 0) {
-      isDebugging && console.log('[loginUser]: User found in database'); // Log successful user lookup
+      isDebugging && console.log("[loginUser]: User found in database"); // Log successful user lookup
       const user_id = (data as any)[0].id;
 
       // Create tokens
       const accessToken = jwt.sign(
         { user_id },
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: '5m' }
+        { expiresIn: "5m" }
       );
       const refreshToken = jwt.sign(
         { user_id },
         process.env.REFRESH_TOKEN_SECRET,
-        { expiresIn: '1d' }
+        { expiresIn: "1d" }
       );
 
       isDebugging &&
-        console.log('[loginUser]: Access and refresh tokens created');
+        console.log("[loginUser]: Access and refresh tokens created");
 
       // Save Access Token
-      const q = 'UPDATE users SET refresh_token=? WHERE id=?';
+      const q = "UPDATE users SET refresh_token=? WHERE id=?";
       isDebugging &&
         console.log(
-          '[loginUser]: Prepared query for updating refresh token:',
+          "[loginUser]: Prepared query for updating refresh token:",
           q
         );
       isDebugging &&
-        console.log('[loginUser]: Update query values:', [
+        console.log("[loginUser]: Update query values:", [
           refreshToken,
           user_id,
         ]);
@@ -187,75 +187,76 @@ const loginUser = (req: express.Request, res: express.Response) => {
         if (err) {
           isDebugging &&
             console.error(
-              '[loginUser]: Error updating refresh token in database:',
+              "[loginUser]: Error updating refresh token in database:",
               err
             ); // Log database error
           aborted = true;
           return res.status(500).send({ error: err });
         }
         isDebugging &&
-          console.log('[loginUser]: Refresh token updated in database');
+          console.log("[loginUser]: Refresh token updated in database");
       });
       if (aborted) return;
 
       // Send Results
       isDebugging &&
-        console.log('[loginUser]: Setting cookie with refresh token');
-      res.cookie('jwt', refreshToken, {
+        console.log("[loginUser]: Setting cookie with refresh token");
+      res.cookie("jwt", refreshToken, {
         httpOnly: true,
-        sameSite: 'none',
+        sameSite: "none",
         secure: true,
         maxAge: 24 * 60 * 60 * 1000,
       });
-      return res.status(200).send({ accessToken, error: 'No Error' });
+      return res.status(200).send({ accessToken, error: "No Error" });
     } else {
-      isDebugging && console.warn('[loginUser]: Invalid credentials provided'); // Log invalid credentials
-      return res.status(401).send({ error: 'Invalid credentials' });
+      isDebugging && console.warn("[loginUser]: Invalid credentials provided"); // Log invalid credentials
+      return res.status(401).send({ error: "Invalid credentials" });
     }
   });
 };
 const logoutUser = (req: express.Request, res: express.Response) => {
   isDebugging &&
     console.log(
-      '\x1b[35m',
-      `\n------${new Date().toISOString().slice(0, 19).replace('T', ' ')}-----`
+      "\x1b[35m",
+      `\n------${new Date().toISOString().slice(0, 19).replace("T", " ")}-----`
     );
 
-  const q = 'UPDATE users SET refresh_token=NULL WHERE refresh_token=?';
+  const q = "UPDATE users SET refresh_token=NULL WHERE refresh_token=?";
   const cookies = req.cookies;
 
-  isDebugging && console.log('[logoutUser]: Cookies received:', cookies);
+  isDebugging && console.log("[logoutUser]: Cookies received:", cookies);
 
   if (!cookies?.jwt) {
-    isDebugging && console.log('[logoutUser]: No JWT cookie found'); // Log absence of JWT
-    res.status(204).send({ error: 'No content' });
+    isDebugging && console.log("[logoutUser]: No JWT cookie found"); // Log absence of JWT
+    res.status(204).send({ error: "No content" });
     return;
   }
 
   const refreshToken = cookies.jwt;
+
   isDebugging &&
-    console.log('[logoutUser]: Refresh token from cookie:', refreshToken);
+    console.log("[logoutUser]: Refresh token from cookie:", refreshToken);
 
   mysqlConnection.query(q, [refreshToken], (err, data) => {
     if (err) {
       isDebugging &&
         console.error(
-          '[logoutUser]: Error while removing refresh token in database:',
+          "[logoutUser]: Error while removing refresh token in database:",
           err
         ); // Log database error
       return res.status(500).send({ error: err });
     }
 
     isDebugging &&
-      console.log('[logoutUser]: Refresh token removed from database');
+      console.log("[logoutUser]: Refresh token removed from database");
 
-    res.clearCookie('jwt', {
+    res.clearCookie("jwt", {
       httpOnly: true,
-      sameSite: 'none',
+      sameSite: "none",
       secure: true,
     });
-    isDebugging && console.log('[logoutUser]: JWT cookie cleared');
-    res.status(200).send({ error: 'No Error' });
+    isDebugging && console.log("[logoutUser]: JWT cookie cleared");
+    res.status(200).send({ error: "No Error" });
   });
 };
 
@@ -263,11 +264,11 @@ const logoutUser = (req: express.Request, res: express.Response) => {
 const createDeck = (req: express.Request, res: express.Response) => {
   isDebugging &&
     console.log(
-      '\x1b[34m',
-      `\n------${new Date().toISOString().slice(0, 19).replace('T', ' ')}-----`
+      "\x1b[34m",
+      `\n------${new Date().toISOString().slice(0, 19).replace("T", " ")}-----`
     );
   const user_id = req.body.user_id;
-  const q = 'SELECT * FROM decks WHERE user_id=?';
+  const q = "SELECT * FROM decks WHERE user_id=?";
 
   // Debugging statement for the user_id and query
   isDebugging &&
@@ -281,16 +282,16 @@ const createDeck = (req: express.Request, res: express.Response) => {
         console.log(`[createDeck]: Debugging - Error fetching decks:`, err);
     }
 
-    const q = 'INSERT INTO decks (user_id, name, settings) VALUES (?)';
+    const q = "INSERT INTO decks (user_id, name, settings) VALUES (?)";
     const defaultSettings = JSON.stringify({
       defaultSettings: {
-        deckColor: 'c-primary',
+        deckColor: "c-primary",
         timer: {
           maximumTime: 60,
           showTimer: false,
           calculateTime: false,
         },
-        displayOrder: 'Display cards in increasing order',
+        displayOrder: "Display cards in increasing order",
         dailyLimits: {
           newCards: 20,
           maximumReviews: 999,
@@ -320,7 +321,7 @@ const createDeck = (req: express.Request, res: express.Response) => {
 
         return res
           .status(500)
-          .send({ error: 'Error on server side', details: err });
+          .send({ error: "Error on server side", details: err });
       }
 
       const deck_id = (data as any).insertId; // Get the newly inserted deck_id
@@ -342,11 +343,11 @@ const createDeck = (req: express.Request, res: express.Response) => {
 const getUsersDecks = (req: express.Request, res: express.Response) => {
   isDebugging &&
     console.log(
-      '\x1b[32m',
-      `\n------${new Date().toISOString().slice(0, 19).replace('T', ' ')}-----`
+      "\x1b[32m",
+      `\n------${new Date().toISOString().slice(0, 19).replace("T", " ")}-----`
     );
 
-  const q = 'SELECT * FROM decks WHERE user_id=?';
+  const q = "SELECT * FROM decks WHERE user_id=?";
 
   mysqlConnection.query(q, [req.body.user_id], (err, data) => {
     if (err) {
@@ -362,7 +363,7 @@ const getUsersDecks = (req: express.Request, res: express.Response) => {
         console.log(
           `[getUsersDecks]: Debugging - No decks found for user_id: ${req.body.user_id}`
         );
-      return res.status(404).send({ error: 'No decks found' });
+      return res.status(404).send({ error: "No decks found" });
     }
 
     // Debugging statement for successful data retrieval
@@ -371,17 +372,17 @@ const getUsersDecks = (req: express.Request, res: express.Response) => {
         `[getUsersDecks]: Debugging - Found decks for user_id: ${req.body.user_id}`
       );
 
-    return res.status(200).send({ decks: data, error: 'No Error' });
+    return res.status(200).send({ decks: data, error: "No Error" });
   });
 };
 const getUsersDeck = async (req: express.Request, res: express.Response) => {
   isDebugging &&
     console.log(
-      '\x1b[32m',
-      `\n------${new Date().toISOString().slice(0, 19).replace('T', ' ')}-----`
+      "\x1b[32m",
+      `\n------${new Date().toISOString().slice(0, 19).replace("T", " ")}-----`
     );
 
-  const q = 'SELECT * FROM decks WHERE id = ?';
+  const q = "SELECT * FROM decks WHERE id = ?";
   const deck_id = parseInt(req.params.id!);
   const user_id = req.body.user_id;
 
@@ -401,7 +402,7 @@ const getUsersDeck = async (req: express.Request, res: express.Response) => {
 
       return res
         .status(500)
-        .send({ error: 'Error on server side', details: err });
+        .send({ error: "Error on server side", details: err });
     }
 
     const deckData = data as any;
@@ -411,7 +412,7 @@ const getUsersDeck = async (req: express.Request, res: express.Response) => {
         console.log(
           `[getUsersDeck]: Debugging - Deck not found for deck_id: ${deck_id}`
         );
-      return res.status(404).send({ error: 'Deck not found' });
+      return res.status(404).send({ error: "Deck not found" });
     }
 
     const deck = deckData[0];
@@ -422,7 +423,7 @@ const getUsersDeck = async (req: express.Request, res: express.Response) => {
         console.log(
           `[getUsersDeck]: Debugging - Unauthorized access to deck_id: ${deck_id} by user_id: ${user_id}`
         );
-      return res.status(401).send({ error: 'Unauthorized' });
+      return res.status(401).send({ error: "Unauthorized" });
     }
 
     try {
@@ -443,7 +444,7 @@ const getUsersDeck = async (req: express.Request, res: express.Response) => {
 
       return res.status(200).send({
         deck: { ...deck, flashcards },
-        error: 'No Error',
+        error: "No Error",
       });
     } catch (flashcardsErr) {
       // Debugging statement for error fetching flashcards
@@ -454,7 +455,7 @@ const getUsersDeck = async (req: express.Request, res: express.Response) => {
         );
 
       return res.status(500).send({
-        error: 'Error fetching flashcards',
+        error: "Error fetching flashcards",
         details: flashcardsErr,
       });
     }
@@ -463,8 +464,8 @@ const getUsersDeck = async (req: express.Request, res: express.Response) => {
 const updateDeck = (req: express.Request, res: express.Response) => {
   isDebugging &&
     console.log(
-      '\x1b[36m',
-      `\n------${new Date().toISOString().slice(0, 19).replace('T', ' ')}-----`
+      "\x1b[36m",
+      `\n------${new Date().toISOString().slice(0, 19).replace("T", " ")}-----`
     );
 
   const q = `
@@ -486,7 +487,7 @@ const updateDeck = (req: express.Request, res: express.Response) => {
         console.log(`[updateDeck]: Debugging - Error updating deck:`, err);
       return res
         .status(500)
-        .send({ error: 'Error on server side', details: err });
+        .send({ error: "Error on server side", details: err });
     }
 
     const okResult = result as mysql.OkPacketParams;
@@ -495,7 +496,7 @@ const updateDeck = (req: express.Request, res: express.Response) => {
       // Debugging statement for deck not found
       isDebugging &&
         console.log(`[updateDeck]: Deck not found for deck_id: ${deck_id}`);
-      return res.status(404).send({ error: 'Deck not found' });
+      return res.status(404).send({ error: "Deck not found" });
     }
 
     // Handle flashcard updates and deletions
@@ -522,7 +523,7 @@ const updateDeck = (req: express.Request, res: express.Response) => {
                 deleteErr
               );
             return res.status(500).send({
-              error: 'Error deleting old flashcards',
+              error: "Error deleting old flashcards",
               details: deleteErr,
             });
           }
@@ -579,7 +580,7 @@ const updateDeck = (req: express.Request, res: express.Response) => {
                 console.log(
                   `[updateDeck]: Flashcards updated successfully for deck_id: ${deck_id}`
                 );
-              return res.status(200).send({ error: 'No Error' });
+              return res.status(200).send({ error: "No Error" });
             })
             .catch((flashcardErr) => {
               // Debugging statement for error updating flashcards
@@ -589,7 +590,7 @@ const updateDeck = (req: express.Request, res: express.Response) => {
                   flashcardErr
                 );
               return res.status(500).send({
-                error: 'Error updating flashcards',
+                error: "Error updating flashcards",
                 details: flashcardErr,
               });
             });
@@ -597,33 +598,33 @@ const updateDeck = (req: express.Request, res: express.Response) => {
       );
     } else {
       // If no flashcards were provided, just update the deck
-      return res.status(200).send({ error: 'No Error' });
+      return res.status(200).send({ error: "No Error" });
     }
   });
 };
 
 //Helper Functions
 const formatTimestamp = (isoString: string) => {
-  return new Date(isoString).toISOString().slice(0, 19).replace('T', ' ');
+  return new Date(isoString).toISOString().slice(0, 19).replace("T", " ");
 };
 const createInitialFlashcard = (deck_id: number) => {
-  const q = 'INSERT INTO flashcards (deck_id, id, question, answer) VALUES (?)';
+  const q = "INSERT INTO flashcards (deck_id, id, question, answer) VALUES (?)";
 
-  const question = 'Question';
-  const answer = 'Answer';
+  const question = "Question";
+  const answer = "Answer";
 
   const values = [deck_id, 1, question, answer];
   mysqlConnection.query(q, [values], (err, data) => {
     if (err) {
-      console.error('Error adding initial flashcard:', err);
+      console.error("Error adding initial flashcard:", err);
     } else {
-      console.log('Initial flashcard created for deck:', deck_id);
+      console.log("Initial flashcard created for deck:", deck_id);
     }
   });
 };
 const getFlashcardsFromDeck = (deck_id: number): Promise<any[]> => {
   return new Promise((resolve, reject) => {
-    const q = 'SELECT * FROM flashcards WHERE deck_id = ?';
+    const q = "SELECT * FROM flashcards WHERE deck_id = ?";
 
     const values = [deck_id];
     mysqlConnection.query(q, values, (err, data: any[]) => {
@@ -644,28 +645,25 @@ const verifyJWT = (
 ) => {
   isDebugging &&
     console.log(
-      '\x1b[90m',
-      `\n------${new Date().toISOString().slice(0, 19).replace('T', ' ')}-----`
+      "\x1b[90m",
+      `\n------${new Date().toISOString().slice(0, 19).replace("T", " ")}-----`
     );
 
-  const authHeader = req.headers['authorization'];
+  const authHeader = req.headers["authorization"];
 
   // Debugging statement for missing authorization header
   if (!authHeader) {
-    isDebugging &&
-      console.log(`[verifyJWT]: Debugging - No authorization header found.`);
+    isDebugging && console.log(`[verifyJWT]: No authorization header found.`);
     res.sendStatus(401); // Respond with 401
     return; // Stop further execution
   }
 
-  const token = authHeader.split(' ')[1];
+  const token = authHeader.split(" ")[1];
 
   if (!token) {
     // Debugging statement for missing token
     isDebugging &&
-      console.log(
-        `[verifyJWT]: Debugging - No token found in authorization header.`
-      );
+      console.log(`[verifyJWT]: No token found in authorization header.`);
     res.sendStatus(401); // Respond with 401
     return;
   }
@@ -673,8 +671,7 @@ const verifyJWT = (
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!, (err, decoded) => {
     if (err) {
       // Debugging statement for error verifying token
-      isDebugging &&
-        console.log(`[verifyJWT]: Debugging - Error verifying token:`, err);
+      isDebugging && console.log(`[verifyJWT]: Error verifying token:`, err);
       res.sendStatus(403); // Respond with 403
       return;
     }
@@ -683,7 +680,7 @@ const verifyJWT = (
     // Debugging statement for successful token verification
     isDebugging &&
       console.log(
-        `[verifyJWT]: Debugging - Token verified successfully, user_id: ${
+        `[verifyJWT]: Token verified successfully, user_id: ${
           (decoded as any).user_id
         }`
       );
@@ -693,8 +690,8 @@ const verifyJWT = (
 const handleRefreshToken = (req: express.Request, res: express.Response) => {
   isDebugging &&
     console.log(
-      '\x1b[90m',
-      `\n------${new Date().toISOString().slice(0, 19).replace('T', ' ')}-----`
+      "\x1b[90m",
+      `\n------${new Date().toISOString().slice(0, 19).replace("T", " ")}-----`
     );
 
   const cookies = req.cookies;
@@ -708,28 +705,23 @@ const handleRefreshToken = (req: express.Request, res: express.Response) => {
   }
 
   const refreshToken = cookies.jwt;
-  const q = 'SELECT * FROM users WHERE refresh_token=?';
+  const q = "SELECT * FROM users WHERE refresh_token=?";
 
   // Debugging statement for the refresh token being used in the query
   isDebugging &&
-    console.log(
-      `[handleRefreshToken]: Debugging - Using refresh token: ${refreshToken}`
-    );
+    console.log(`[handleRefreshToken]: Using refresh token: ${refreshToken}`);
 
   mysqlConnection.query(q, [refreshToken], (err, data) => {
     if (err) {
       // Debugging statement for database error
-      isDebugging &&
-        console.log(`[handleRefreshToken]: Debugging - Database error:`, err);
+      isDebugging && console.log(`[handleRefreshToken]: Database error:`, err);
       return res.sendStatus(403);
     }
     if (!data || (data as any).length === 0) {
       // Debugging statement for no user found for refresh token
       isDebugging &&
-        console.log(
-          `[handleRefreshToken]: Debugging - No user found for refresh token.`
-        );
-      return res.status(404).send({ error: 'User not found' });
+        console.log(`[handleRefreshToken]: No user found for refresh token.`);
+      return res.status(404).send({ error: "User not found" });
     }
 
     const user_id = (data as any)[0].id;
@@ -742,7 +734,7 @@ const handleRefreshToken = (req: express.Request, res: express.Response) => {
           // Debugging statement for token verification failure
           isDebugging &&
             console.log(
-              `[handleRefreshToken]: Debugging - Token verification failed:`,
+              `[handleRefreshToken]: Token verification failed:`,
               err
             );
           return res.sendStatus(403);
@@ -751,33 +743,64 @@ const handleRefreshToken = (req: express.Request, res: express.Response) => {
         const accessToken = jwt.sign(
           { user_id },
           process.env.ACCESS_TOKEN_SECRET!,
-          { expiresIn: '5m' }
+          { expiresIn: "5m" }
         );
 
         // Debugging statement for new access token generated
         isDebugging &&
           console.log(
-            `[handleRefreshToken]: Debugging - Access token generated: ${accessToken}`
+            `[handleRefreshToken]: Access token generated: ${accessToken}`
           );
 
-        res.status(200).send({ accessToken, error: 'No Error' });
+        res.status(200).send({ accessToken, error: "No Error" });
       }
     );
   });
 };
 
 //Cors Options
-const allowedOrigins = ['http://localhost:5173', process.env.FRONTEND_PATH];
+const allowedOrigins = ["http://localhost:5173", process.env.FRONTEND_PATH];
 const corsOptions = {
   origin: (origin: any, callback: any) => {
     if (allowedOrigins.includes(origin) || !origin) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error("Not allowed by CORS"));
     }
   },
-  methods: ['POST', 'GET', 'PUT', 'DELETE'],
+  methods: ["POST", "GET", "PUT", "DELETE"],
   credentials: true, // Allow cookies and credentials
+};
+
+//Update user activity
+const updateUserActivity = (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  const user_id = req.body.user_id;
+  if (!user_id) {
+    res.sendStatus(401);
+    return;
+  }
+
+  isDebugging &&
+    console.log(
+      "[updateUserActivity]: Updating user activity for user:",
+      user_id
+    );
+
+  const q = `UPDATE users SET last_active_at = NOW() WHERE id = ?`;
+
+  mysqlConnection.query(q, [user_id], (err, result) => {
+    if (err) {
+      isDebugging &&
+        console.error(`[updateUserActivity]: Database error:`, err);
+      return res.sendStatus(500);
+    }
+
+    next();
+  });
 };
 
 //Middleware
@@ -787,23 +810,20 @@ app.use(express.json());
 app.use(cookieParser());
 
 //Routes
-app.route('/api/refresh').get(handleRefreshToken);
-app.route('/api/users/register').post(registerUser);
-app.route('/api/users/login').post(loginUser);
-app.route('/api/users/logout').post(logoutUser);
-app
-  .route('/api/decks')
-  .get(verifyJWT, getUsersDecks)
-  .post(verifyJWT, createDeck);
-app
-  .route('/api/decks/:id')
-  .get(verifyJWT, getUsersDeck)
-  .put(verifyJWT, updateDeck);
+app.route("/api/refresh").get(handleRefreshToken);
+app.route("/api/users/register").post(registerUser);
+app.route("/api/users/login").post(loginUser);
+app.route("/api/users/logout").post(logoutUser);
+
+app.use(verifyJWT);
+app.use(updateUserActivity);
+app.route("/api/decks").get(getUsersDecks).post(createDeck);
+app.route("/api/decks/:id").get(getUsersDeck).put(updateDeck);
 
 //Server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  isDebugging && console.log('[server]: Debug mode on');
+  isDebugging && console.log("[server]: Debug mode on");
   console.log(`[server]: Allowed origins ${JSON.stringify(allowedOrigins)}`);
   console.log(`[server]: Running...`);
   console.log(`-------------------------------`);
