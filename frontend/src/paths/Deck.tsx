@@ -108,6 +108,18 @@ const Deck = () => {
   };
 
   const getCardsNew = () => {
+    //Check If already studied something today
+    const today = new Date().getTime();
+    for (let i = 0; i < cards.length; i++) {
+      const lastReviewDate = new Date(cards[i].last_reviewed_at!).getTime();
+      const diff = today - lastReviewDate;
+      const condition = 24 * 60 * 60 * 1000 > diff && diff > 0;
+      if (condition) {
+        return 0;
+      }
+    }
+
+    //Display number of new cards that you can study
     let amount = 0;
     const limit = deck!.settings.defaultSettings.dailyLimits.newCards;
     for (let i = 0; i < cards.length; i++) {
