@@ -1,11 +1,45 @@
-import { Link } from 'react-router-dom';
-import useAuth from '../hooks/useAuth';
-import { useState } from 'react';
-import { logoutUser } from '../api';
-import { initialAuthState } from '../context/AuthProvider';
+import { Link, useNavigate } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
+import { useEffect, useState } from "react";
+import { logoutUser } from "../api";
+import { initialAuthState } from "../context/AuthProvider";
+import useAxiosPrivate from "../hooks/userAxiosPrivate";
 const Navbar = () => {
+  const AxiosPrivateInstance = useAxiosPrivate();
   const [isOpen, setIsOpen] = useState(false);
   const { auth, setAuth } = useAuth();
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchResults, setSearchResults] = useState<
+    { id: string; name: string; username: string }[]
+  >([]);
+  const navigate = useNavigate();
+
+  const searchSubmitHandler = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("searched");
+    navigate(`/discover/${searchQuery}`);
+  };
+
+  useEffect(() => {
+    if (searchQuery.length === 0) return;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      const fetchData = async () => {
+        const res = await AxiosPrivateInstance.get(`/discover/${searchQuery}`, {
+          signal: controller.signal,
+        });
+        setSearchResults(res.data);
+      };
+
+      fetchData();
+    }, 250);
+
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [searchQuery]);
 
   return (
     <div className="w-[80%] max-md:w-[90%] flex items-center mx-auto pt-4 z-[49]">
@@ -19,18 +53,31 @@ const Navbar = () => {
           />
         </Link>
       </div>
-      <div className="rounded-2xl bg-c-light flex-1 max-md:px-2 px-4 py-2 flex">
-        <img className=" mr-2" src="/search.svg" alt="" />
-        <input
-          className="w-full p-small text-[#C6C6C6] placeholder:p-small placeholder:text-[#C6C6C6] bg-transparent  outline-none"
-          type="text"
-          placeholder="Search flash cards"
-        />
+      <div
+        className="rounded-2xl bg-c-light flex-1"
+        onSubmit={searchSubmitHandler}
+      >
+        <form className="w-full flex items-center max-md:px-2 px-4 py-2">
+          <input
+            className=" p-small text-[#C6C6C6] placeholder:p-small flex-1 placeholder:text-[#C6C6C6] bg-transparent  outline-none"
+            type="text"
+            placeholder="Search flash cards"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery.length > 0 ? (
+            <button type="submit" className="ml-2  h-full">
+              <img src="/search.svg" alt="" />
+            </button>
+          ) : (
+            <img className="ml-2 h-full" src="/search.svg" alt="" />
+          )}
+        </form>
       </div>
       <div className="md:flex-1 flex justify-end max-md:ml-2">
         {auth?.accessToken ? (
           <div className="inline-flex max-md:gap-2 gap-4 items-center">
-            <Link className="p-small" to={'/decks'}>
+            <Link className="p-small" to={"/decks"}>
               Decks
             </Link>
             <div className="relative">
@@ -44,9 +91,6 @@ const Navbar = () => {
               </button>
               {isOpen && (
                 <div className="absolute flex flex-col items-center top-[150%] right-0 bg-c-light w-52 rounded-2xl p-4 border-2 border-c-dark">
-                  <Link className="mb-4" to="/profile">
-                    View profile
-                  </Link>
                   <button
                     className="text-c-blue"
                     onClick={() => {

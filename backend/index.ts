@@ -623,14 +623,20 @@ const searchDecks = async (req: express.Request, res: express.Response) => {
       `\n------${new Date().toISOString().slice(0, 19).replace("T", " ")}-----`
     );
 
-  const { input } = req.body;
+  const input = req.params.query;
 
   if (!input) {
     res.status(400).send({ error: "Input is required" });
     return;
   }
 
-  const query = `SELECT id, name FROM decks WHERE is_public = 1 AND name LIKE ?`;
+  // Modified query: join decks with users to get the username.
+  const query = `
+    SELECT d.id, d.name, u.username 
+    FROM decks d 
+    JOIN users u ON d.user_id = u.id
+    WHERE d.is_public = 1 AND d.name LIKE ?
+  `;
   const values = [`%${input}%`];
 
   mysqlConnection.query(query, values, (err, results) => {
@@ -865,7 +871,7 @@ app
   .get(getUsersDeck)
   .put(updateDeck)
   .delete(deleteDeck);
-app.route("/api/discover").get(searchDecks);
+app.route("/api/discover/:query").get(searchDecks);
 
 //Server
 const port = process.env.PORT || 3000;
