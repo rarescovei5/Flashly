@@ -9,6 +9,7 @@ import Discover from "./paths/Discover";
 import RequireAuth from "./auth/RequireAuth";
 import PersistAuth from "./auth/PersistAuth";
 import NotFound from "./paths/NotFound";
+import DeckDiscover from "./paths/DeckDiscover";
 const App = () => {
   return (
     <BrowserRouter>
@@ -22,8 +23,8 @@ const App = () => {
             <Route path="/decks" element={<Decks />} />
             <Route path="/decks/:deckId" element={<Deck />} />
             <Route path="/decks/:deckId/play" element={<PlayDeck />} />
-            <Route path="/decks/discover/:query" element={<Discover />} />
-            <Route path="/decks/discover/:deckId" element={<Discover />} />
+            <Route path="/discover/:query" element={<Discover />} />
+            <Route path="/decks/discover/:deckId" element={<DeckDiscover />} />
           </Route>
         </Route>
 

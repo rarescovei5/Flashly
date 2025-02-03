@@ -466,7 +466,8 @@ const updateDeck = (req: express.Request, res: express.Response) => {
     WHERE id = ?`;
 
   const deck_id = parseInt(req.params.id!);
-  const { name, settings, updatedFlashcards, is_public } = req.body;
+  const { name, settings, is_public } = req.body;
+  const updatedFlashcards = req.body.flashcards;
 
   const values = [name, JSON.stringify(settings), is_public ? 1 : 0, deck_id];
   console.log(values);
@@ -648,6 +649,120 @@ const searchDecks = async (req: express.Request, res: express.Response) => {
       console.log(`[searchDecks]: Found ${(results as any).length} decks`);
 
     return res.status(200).json(results);
+  });
+};
+
+const saveDeck = (req: express.Request, res: express.Response) => {
+  isDebugging &&
+    console.log(
+      "\x1b[35m",
+      `\n------${new Date().toISOString().slice(0, 19).replace("T", " ")}-----`
+    );
+
+  // Get the current user id and the deck id to copy
+  const currentUserId = req.body.user_id;
+  const originalDeckId = req.params.deckId; // e.g. /decks/save/:deckId
+  // The original deck information is provided by the frontend in req.body.deck
+  const originalDeck = req.body.deck;
+  const flashcards = req.body.deck.flashcards;
+
+  isDebugging &&
+    console.log(
+      `[saveDeck]: currentUserId: ${currentUserId}, originalDeckId: ${originalDeckId}`
+    );
+
+  if (!currentUserId || !originalDeckId || !originalDeck) {
+    isDebugging &&
+      console.log(
+        "[saveDeck]: Missing currentUserId, originalDeckId, or deck data"
+      );
+    res
+      .status(400)
+      .send({ error: "User id, deck id, and deck data are required." });
+    return;
+  }
+
+  // Create a new deck for the current user. We prefix the name to indicate it’s a copy.
+  const newDeckName = `Copy of ${originalDeck.name}`;
+  const newDeckSettings = originalDeck.settings; // Copy settings as-is
+  // Decide if you want the copied deck to be public or private.
+  const newDeckIsPublic = 0; // For example, we copy it as a private deck.
+
+  const insertDeckQuery =
+    "INSERT INTO decks (user_id, name, settings) VALUES (?)";
+  const deckValues = [
+    currentUserId,
+    newDeckName,
+    JSON.stringify(newDeckSettings),
+  ];
+
+  isDebugging &&
+    console.log(
+      `[saveDeck]: Inserting new deck for user ${currentUserId} with name "${newDeckName}"`
+    );
+
+  mysqlConnection.query(insertDeckQuery, [deckValues], (err, result) => {
+    if (err) {
+      isDebugging && console.error("[saveDeck]: Error creating new deck", err);
+      return res
+        .status(500)
+        .send({ error: "Error creating new deck", details: err });
+    }
+
+    const newDeckId = (result as any).insertId;
+    isDebugging &&
+      console.log(`[saveDeck]: New deck created with ID: ${newDeckId}`);
+
+    // Copy flashcards into the new deck.
+    const flashcardInsertPromises = flashcards.map((flashcard: any) => {
+      return new Promise<void>((resolve, reject) => {
+        const insertFlashcardQuery = `
+          INSERT INTO flashcards 
+            (deck_id, id, question, answer)
+          VALUES (?)
+        `;
+        const flashcardValues = [
+          newDeckId,
+          flashcard.id,
+          flashcard.question,
+          flashcard.answer,
+        ];
+
+        isDebugging &&
+          console.log(
+            `[saveDeck]: Copying flashcard: ${flashcard.question} -> ${flashcard.answer}`
+          );
+
+        mysqlConnection.query(
+          insertFlashcardQuery,
+          [flashcardValues],
+          (err) => {
+            if (err) {
+              isDebugging &&
+                console.error("[saveDeck]: Error inserting flashcard", err);
+              return reject(err);
+            }
+            resolve();
+          }
+        );
+      });
+    });
+
+    Promise.all(flashcardInsertPromises)
+      .then(() => {
+        isDebugging &&
+          console.log(
+            `[saveDeck]: All flashcards copied successfully for new deck ID: ${newDeckId}`
+          );
+        return res.status(201).send({ success: true, newDeckId });
+      })
+      .catch((err) => {
+        isDebugging &&
+          console.error("[saveDeck]: Error copying flashcards", err);
+        return res
+          .status(500)
+          .send({ error: "Error copying flashcards", details: err });
+      });
   });
 };
 
@@ -872,6 +987,7 @@ app
   .put(updateDeck)
   .delete(deleteDeck);
 app.route("/api/discover/:query").get(searchDecks);
+app.route("/api/decks/save/:deckId").post(saveDeck);
 
 //Server
 const port = process.env.PORT || 3000;
