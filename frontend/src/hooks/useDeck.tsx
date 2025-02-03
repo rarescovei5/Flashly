@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
-import { DeckType, Flashcard } from '../types';
-import useAxiosPrivate from './userAxiosPrivate';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { DeckType, Flashcard } from "../types";
+import useAxiosPrivate from "./userAxiosPrivate";
+import { useNavigate } from "react-router-dom";
 
 const useDeck = (deckId: number) => {
   const navigate = useNavigate();
@@ -13,10 +13,13 @@ const useDeck = (deckId: number) => {
     try {
       const response = await axiosPrivateInstance.get(`/decks/${deckId}`);
 
-      setDeck(response.data.deck);
+      setDeck({
+        ...response.data.deck,
+        is_public: response.data.deck.is_public === 0 ? false : true,
+      });
       setCards(response.data.deck.flashcards);
     } catch (error) {
-      navigate('/decks');
+      navigate("/decks");
     }
   };
 

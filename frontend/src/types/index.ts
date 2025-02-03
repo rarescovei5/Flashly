@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from 'react';
+import { Dispatch, SetStateAction } from "react";
 
 export type UserInfo = {
   username: string;
@@ -29,9 +29,6 @@ export type SettingsType = {
       maximumReviews: number;
     };
   };
-  dangerSettings: {
-    public: boolean;
-  };
 };
 export type Flashcard = {
   deck_id: number;
@@ -52,5 +49,6 @@ export type DeckType = {
   settings: SettingsType;
   created_at: string;
   updated_at: string;
+  is_public: boolean;
   flashcards: Flashcard[];
 };

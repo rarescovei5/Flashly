@@ -8,15 +8,24 @@ import { DeckType, Flashcard } from "../types";
 
 /*
 TODO:
-  Hightlight the current card you are editing
+
   Fix the hardcoded value in the overflow-y auto div so the cards are displayed right
 */
 
 const Deck = () => {
+  const axiosPrivateInstance = useAxiosPrivate();
   const deckId = parseInt(useParams().deckId!, 10);
   const { deck, setDeck, cards, setCards } = useDeck(deckId!);
   const [shareInput, setShareInput] = useState("");
   const navigate = useNavigate();
+
+  const deleteDeck = () => {
+    navigate("/decks");
+
+    axiosPrivateInstance.delete(`/decks/${deckId}`).catch((error) => {
+      console.error(error);
+    });
+  };
 
   const contentToObjects = (encryptedString: string): Flashcard[] | null => {
     const result: Flashcard[] = [];
@@ -164,8 +173,6 @@ const Deck = () => {
     return amount;
   };
 
-  const axiosPrivateInstance = useAxiosPrivate();
-
   const [selectedCard, setSelectedCard] = useState(-1);
   const [localQuestion, setLocalQuestion] = useState("");
   const [localAnswer, setLocalAnswer] = useState("");
@@ -243,6 +250,7 @@ const Deck = () => {
       const data = {
         name: deck!.name,
         settings: deck!.settings,
+        is_public: deck!.is_public,
         flashcards: cards,
       };
       try {
@@ -601,26 +609,18 @@ const Deck = () => {
                         className="flex items-center justify-center bg-c-light h-10 w-10 rounded-2xl"
                         onClick={() => {
                           setDeck((prevDeck) => {
+                            console.log(prevDeck);
                             if (!prevDeck) return prevDeck;
                             return {
                               ...prevDeck,
-                              settings: {
-                                ...prevDeck.settings,
-                                dangerSettings: {
-                                  ...prevDeck.settings.dangerSettings,
-                                  public:
-                                    !prevDeck.settings.dangerSettings.public,
-                                },
-                              },
+                              is_public: !prevDeck.is_public,
                             };
                           });
                         }}
                       >
                         <div
                           className={`w-[2rem] h-[2rem] ${
-                            deck?.settings.dangerSettings.public
-                              ? "bg-c-dark"
-                              : ""
+                            deck?.is_public ? "bg-c-dark" : ""
                           } rounded-xl`}
                         ></div>
                       </button>
@@ -678,9 +678,7 @@ const Deck = () => {
                       </p>
                       <button
                         className="flex items-center justify-center bg-red-800 px-4 py-2 rounded-2xl"
-                        onClick={() => {
-                          navigate("/decks");
-                        }}
+                        onClick={deleteDeck}
                       >
                         Delete
                       </button>

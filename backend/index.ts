@@ -291,9 +291,6 @@ const createDeck = (req: express.Request, res: express.Response) => {
           maximumReviews: 999,
         },
       },
-      dangerSettings: {
-        public: false,
-      },
     });
 
     const name = `Deck ${(data as any).length + 1}`;
@@ -456,6 +453,7 @@ const getUsersDeck = async (req: express.Request, res: express.Response) => {
   });
 };
 const updateDeck = (req: express.Request, res: express.Response) => {
+  //Ignoring the fapt that other users can update your deck
   isDebugging &&
     console.log(
       "\x1b[36m",
@@ -464,14 +462,14 @@ const updateDeck = (req: express.Request, res: express.Response) => {
 
   const q = `
     UPDATE decks 
-    SET name = ?, settings = ?, updated_at = NOW() 
+    SET name = ?, settings = ?, is_public = ?, updated_at = NOW() 
     WHERE id = ?`;
 
   const deck_id = parseInt(req.params.id!);
-  const name = req.body.name;
-  const settings = req.body.settings;
-  const updatedFlashcards = req.body.flashcards; // Expect an array of updated flashcards
-  const values = [name, JSON.stringify(settings), deck_id];
+  const { name, settings, updatedFlashcards, is_public } = req.body;
+
+  const values = [name, JSON.stringify(settings), is_public ? 1 : 0, deck_id];
+  console.log(values);
 
   // Update deck details
   mysqlConnection.query(q, values, (err, result) => {
@@ -594,6 +592,56 @@ const updateDeck = (req: express.Request, res: express.Response) => {
       // If no flashcards were provided, just update the deck
       return res.status(200).send({ error: "No Error" });
     }
+  });
+};
+const deleteDeck = async (req: express.Request, res: express.Response) => {
+  isDebugging &&
+    console.log(
+      "\x1b[32m",
+      `\n------${new Date().toISOString().slice(0, 19).replace("T", " ")}-----`
+    );
+  const deck_id = req.params.id;
+  const user_id = req.body.user_id;
+
+  const q = "DELETE FROM decks WHERE id = ? AND user_id = ?";
+  mysqlConnection.query(q, [deck_id, user_id], (err, results) => {
+    if (err) {
+      console.error("[deleteDeck]: Error deleting deck", err);
+      return res.status(500).send({ error: "Server error", details: err });
+    }
+
+    isDebugging &&
+      console.log(`[deleteDeck]: Deleted deck with id: ${deck_id}`);
+
+    return res.status(200).send({ error: "No Error" });
+  });
+};
+const searchDecks = async (req: express.Request, res: express.Response) => {
+  isDebugging &&
+    console.log(
+      "\x1b[32m",
+      `\n------${new Date().toISOString().slice(0, 19).replace("T", " ")}-----`
+    );
+
+  const { input } = req.body;
+
+  if (!input) {
+    res.status(400).send({ error: "Input is required" });
+    return;
+  }
+
+  const query = `SELECT id, name FROM decks WHERE is_public = 1 AND name LIKE ?`;
+  const values = [`%${input}%`];
+
+  mysqlConnection.query(query, values, (err, results) => {
+    if (err) {
+      console.error("[searchDecks]: Error fetching decks", err);
+      return res.status(500).send({ error: "Server error", details: err });
+    }
+    isDebugging &&
+      console.log(`[searchDecks]: Found ${(results as any).length} decks`);
+
+    return res.status(200).json(results);
   });
 };
 
@@ -812,7 +860,12 @@ app.route("/api/users/logout").post(logoutUser);
 app.use(verifyJWT);
 app.use(updateUserActivity);
 app.route("/api/decks").get(getUsersDecks).post(createDeck);
-app.route("/api/decks/:id").get(getUsersDeck).put(updateDeck);
+app
+  .route("/api/decks/:id")
+  .get(getUsersDeck)
+  .put(updateDeck)
+  .delete(deleteDeck);
+app.route("/api/discover").get(searchDecks);
 
 //Server
 const port = process.env.PORT || 3000;
