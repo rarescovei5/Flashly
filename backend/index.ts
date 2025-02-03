@@ -408,15 +408,6 @@ const getUsersDeck = async (req: express.Request, res: express.Response) => {
 
     const deck = deckData[0];
 
-    if (deck.user_id !== user_id) {
-      // Debugging statement for unauthorized access
-      isDebugging &&
-        console.log(
-          `[getUsersDeck]: Debugging - Unauthorized access to deck_id: ${deck_id} by user_id: ${user_id}`
-        );
-      return res.status(401).send({ error: "Unauthorized" });
-    }
-
     try {
       // Fetch the flashcards associated with the deck
       const flashcards = await getFlashcardsFromDeck(deck_id);
@@ -436,6 +427,7 @@ const getUsersDeck = async (req: express.Request, res: express.Response) => {
       return res.status(200).send({
         deck: { ...deck, flashcards },
         error: "No Error",
+        same_user: deck.user_id === user_id,
       });
     } catch (flashcardsErr) {
       // Debugging statement for error fetching flashcards

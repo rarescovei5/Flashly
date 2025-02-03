@@ -13,6 +13,14 @@ const useDeck = (deckId: number) => {
     try {
       const response = await axiosPrivateInstance.get(`/decks/${deckId}`);
 
+      //Check if User is on deck page and is getting his own deck
+      if (
+        !response.data.same_user &&
+        window.location.pathname === `/decks/${deckId}`
+      ) {
+        navigate("/decks");
+      }
+
       setDeck({
         ...response.data.deck,
         is_public: response.data.deck.is_public === 0 ? false : true,
